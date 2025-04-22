@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 // src/features/dashboard/components/PlanCard.jsx
 const PlanCard = () => {
     return (
@@ -6,9 +8,11 @@ const PlanCard = () => {
         <p className="text-gray-600 mb-5">
           You don’t have a subscription plan yet. Please subscribe to a plan.
         </p>
-        <button className="bg-blue-600 text-white py-2 px-5 rounded hover:bg-blue-700 transition">
-          Get Started
-        </button>
+        <Link to="/dashboard/subscription">
+          <button className="bg-blue-600 text-white py-2 px-5 rounded hover:bg-blue-700 transition">
+            Get Started
+          </button>
+        </Link>
       </div>
     );
   };

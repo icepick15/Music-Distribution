@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const RecentReleases = () => {
     return (
       <section id="recent-releases" className="w-full mt-12">
@@ -5,9 +7,11 @@ const RecentReleases = () => {
           <h2 className="text-2xl font-bold tracking-tight text-gray-800">
             Recent Releases
           </h2>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg shadow-md transition duration-200">
-            Create New Release
-          </button>
+          <Link to="/dashboard/music">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg shadow-md transition duration-200">
+              Create New Release
+            </button>
+          </Link>
         </div>
   
         <div className="overflow-auto bg-white shadow-md rounded-xl border border-gray-200">

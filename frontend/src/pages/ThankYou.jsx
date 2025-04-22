@@ -1,9 +1,9 @@
 import React from 'react'
 
-function ThankYou() {
+const ThankYou = () => {
   return (
     <div>
-      ThankYou
+      Thank You
     </div>
   )
 }

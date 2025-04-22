@@ -52,7 +52,6 @@ const Navbar = () => {
             {/* Upload with badge */}
             <div className="relative flex items-center text-sm font-semibold cursor-pointer">
               <span className="material-icons"><FaCartShopping/></span>
-              <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs px-1 rounded-full">1</span>
               <Link to="/dashboard/music/release" >
                 Upload
               </Link>
@@ -63,13 +62,16 @@ const Navbar = () => {
           </>
         ) : (
           <>
-            <SignInButton mode="modal" redirectUrl="/dashboard">
-              <button className="border px-4 py-1 rounded">Login</button>
-            </SignInButton>
-
-            <SignUpButton mode="modal" redirectUrl="/dashboard">
-              <button className="bg-blue-600 text-white px-4 py-1 rounded">Sign Up</button>
-            </SignUpButton>
+          
+            <Link to="/sign-in" className="border px-4 py-1 rounded">
+              Login
+            </Link>
+          
+          
+            <Link to="/sign-up" className="bg-blue-600 text-white px-4 py-1 rounded">
+              Sign Up
+            </Link>
+          
           </>
         )}
       </div>

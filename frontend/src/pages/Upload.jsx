@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Upload() {
+const Upload = () => {
   return (
     <div>
       Upload
