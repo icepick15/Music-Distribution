@@ -17,6 +17,8 @@ import SignInPage from "./pages/SignInPage";
 import SignUpPage from './pages/SignUpPage';
 import PricingPage from './pages/PricingPage';
 import StreamDashboard from './pages/StreamDashboard';
+import AdminRoutes from './admin/routes/AdminRoutes';
+import AdminLogin from "./pages/AdminLogin";
 
 const clerkFrontendApi = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -41,6 +43,8 @@ const AppRoutes = () => {
         <Route path="/pricing" element={<PricingPage />} />
         
         <Route path="/dashboard/sales" element={<StreamDashboard />} />
+        <Route path="/admin/*" element={<AdminRoutes />} />
+        <Route path="/admin-login*" element={<AdminLogin />} />
         
       </Routes>
       <Footer />

@@ -2,8 +2,8 @@ const defaultArtist = {
     id: "artist_001",
     name: "Unknown Artist",
     bio: "This artist has not provided a bio yet.",
-    avatarUrl: "/default-avatar.png", // Replace with your default image path
-    bannerUrl: "/default-banner.jpg", // Optional: banner/header image
+    avatarUrl: "/default-avatar.png", 
+    bannerUrl: "/default-banner.jpg", 
     location: "Undisclosed",
     genre: "Various",
     socials: {
