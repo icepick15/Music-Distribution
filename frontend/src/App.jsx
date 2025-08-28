@@ -6,11 +6,11 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 
 import Dashboard from './pages/Dashboard';
-import Footer from './components/Footer';
+import ModernFooter from './components/ModernFooter';
 import DashboardMusic from './pages/DashboardMusic';
 import ReleaseForm from './features/releases/ReleaseForm';
 import ReleaseSuccess from "@/features/releases/ReleaseConfirmation";
-import TicketsPage from './features/tickets/components/TicketDetailModal';
+import TicketsPage from './features/tickets/TicketsPage';
 import ArtistPage from './pages/ArtistPage';
 import SubscriptionPlans from './features/dashboard/subscription/page';
 import SignInPage from "./pages/SignInPage";
@@ -23,10 +23,8 @@ import AdminLogin from "./pages/AdminLogin";
 const clerkFrontendApi = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const AppRoutes = () => {
-  const navigate = useNavigate();
-
   return (
-    <ClerkProvider publishableKey={clerkFrontendApi} navigate={to => navigate(to)}>
+    <>
       <Navbar />
       
       <Routes>
@@ -47,16 +45,18 @@ const AppRoutes = () => {
         <Route path="/admin-login*" element={<AdminLogin />} />
         
       </Routes>
-      <Footer />
-    </ClerkProvider>
+      <ModernFooter />
+    </>
   );
 };
 
 function App() {
   return (
-    <Router>
-      <AppRoutes />
-    </Router>
+    <ClerkProvider publishableKey={clerkFrontendApi}>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </ClerkProvider>
   );
 }
 
