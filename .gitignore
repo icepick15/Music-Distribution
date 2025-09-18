@@ -1,0 +1,66 @@
+# Create comprehensive .gitignore
+@"
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database
+*.db
+*.sqlite3
+db.sqlite3
+
+# Media files
+media/
+staticfiles/
+static/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+.DS_Store?
+._*
+
+# Logs
+*.log
+logs/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Python
+env/
+venv/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django
+local_settings.py
+db.sqlite3-journal
+
+# React
+build/
+dist/
+
+# Temporary files
+tmp/
+temp/
+"@ | Out-File -FilePath ".gitignore" -Encoding UTF8

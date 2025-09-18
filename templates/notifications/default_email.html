@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #1f2937;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .notification-card {
+            background: #f9fafb;
+            border-left: 4px solid #7c3aed;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .notification-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        .notification-message {
+            color: #6b7280;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #7c3aed;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>{{ site_name }}</h1>
+            <p>Your Music Distribution Platform</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <h2>Hello {{ recipient_name }}!</h2>
+            
+            <div class="notification-card">
+                <div class="notification-title">{{ title }}</div>
+                <div class="notification-message">{{ message }}</div>
+            </div>
+            
+            {% if frontend_url %}
+            <a href="{{ frontend_url }}/dashboard" class="button">
+                Go to Dashboard
+            </a>
+            {% endif %}
+            
+            <p>This is an automated message from your music distribution platform. You're receiving this because you have notifications enabled in your account settings.</p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>{{ site_name }}</strong></p>
+            <p>Distribute your music to 100+ streaming platforms worldwide</p>
+            
+            <div class="social-links">
+                <a href="#">Twitter</a>
+                <a href="#">Instagram</a>
+                <a href="#">YouTube</a>
+            </div>
+            
+            <p>
+                <a href="{{ frontend_url }}/notifications/preferences">Manage Notifications</a> |
+                <a href="{{ frontend_url }}/support">Contact Support</a>
+            </p>
+            <p style="color: #9ca3af; font-size: 12px;">
+                © 2025 {{ site_name }}. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

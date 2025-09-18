@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Music Distribution Platform</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .welcome-message h2 {
+            color: #1f2937;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .welcome-message p {
+            color: #6b7280;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        .features {
+            margin: 40px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border-left: 4px solid #7c3aed;
+        }
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 20px;
+        }
+        .feature-content h3 {
+            margin: 0 0 8px 0;
+            color: #1f2937;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .feature-content p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .cta-section {
+            text-align: center;
+            background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+            color: white;
+            padding: 40px 30px;
+            margin: 30px 0;
+            border-radius: 12px;
+        }
+        .cta-section h3 {
+            margin: 0 0 20px 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .button {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .button.primary {
+            background: white;
+            color: #7c3aed;
+            border-color: white;
+        }
+        .button.primary:hover {
+            background: #f3f4f6;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .cta-section {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎵 Welcome!</h1>
+            <p>Your music journey starts here</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="welcome-message">
+                <h2>Welcome to {{ site_name }}, {{ user.first_name }}!</h2>
+                <p>We're excited to have you join our community of artists. You're now ready to distribute your music to millions of listeners worldwide across all major streaming platforms.</p>
+            </div>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <div class="feature-icon">🎧</div>
+                    <div class="feature-content">
+                        <h3>Global Distribution</h3>
+                        <p>Get your music on Spotify, Apple Music, YouTube Music, and 100+ other platforms</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-content">
+                        <h3>Real-time Analytics</h3>
+                        <p>Track your streams, revenue, and audience insights with detailed analytics</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">💰</div>
+                    <div class="feature-content">
+                        <h3>Keep upto 90% Royalties</h3>
+                        <p>You own your music and keep all the royalties from your streams and sales</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-content">
+                        <h3>Fast Review Process</h3>
+                        <p>Quick 2-3 day review process to get your music live on all platforms</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cta-section">
+                <h3>Ready to upload your first track?</h3>
+                <p style="margin-bottom: 30px; opacity: 0.9;">Start your music distribution journey and reach millions of listeners worldwide.</p>
+                
+                <a href="{{ frontend_url }}/dashboard" class="button primary">Go to Dashboard</a>
+                <a href="{{ frontend_url }}/upload" class="button">Upload Your First Song</a>
+            </div>
+            
+            <p style="color: #6b7280; margin-top: 30px;">
+                Need help getting started? Check out our 
+                <a href="{{ frontend_url }}/help" style="color: #7c3aed;">getting started guide</a> 
+                or <a href="{{ frontend_url }}/support" style="color: #7c3aed;">contact our support team</a>.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>{{ site_name }}</strong></p>
+            <p>Empowering artists to reach the world</p>
+            <p>
+                <a href="{{ frontend_url }}/notifications/preferences">Notification Preferences</a> |
+                <a href="{{ frontend_url }}/support">Support</a> |
+                <a href="{{ frontend_url }}/help">Help Center</a>
+            </p>
+            <p style="color: #9ca3af; font-size: 12px;">
+                © 2025 {{ site_name }}. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

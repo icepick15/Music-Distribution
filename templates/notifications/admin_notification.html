@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #dc2626 0%, #7c2d12 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .alert-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .alert-title {
+            color: #dc2626;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .alert-message {
+            color: #374151;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .info-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #7c3aed;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 16px;
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #dc2626 0%, #7c2d12 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                margin: 0;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Admin Alert</h1>
+            <div class="badge">{{ timestamp|date:"M d, Y - H:i" }}</div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="alert-box">
+                <div class="alert-title">{{ subject }}</div>
+                <div class="alert-message">{{ message }}</div>
+            </div>
+            
+            {% if context_data %}
+            <div class="info-grid">
+                {% if context_data.artist_name %}
+                <div class="info-item">
+                    <div class="info-label">Artist</div>
+                    <div class="info-value">{{ context_data.artist_name }}</div>
+                </div>
+                {% endif %}
+                
+                {% if context_data.song_title %}
+                <div class="info-item">
+                    <div class="info-label">Song</div>
+                    <div class="info-value">{{ context_data.song_title }}</div>
+                </div>
+                {% endif %}
+                
+                {% if context_data.amount %}
+                <div class="info-item">
+                    <div class="info-label">Amount</div>
+                    <div class="info-value">₦{{ context_data.amount }}</div>
+                </div>
+                {% endif %}
+                
+                {% if context_data.user_email %}
+                <div class="info-item">
+                    <div class="info-label">User Email</div>
+                    <div class="info-value">{{ context_data.user_email }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% if context_data.admin_review_url %}
+            <a href="{{ frontend_url }}{{ context_data.admin_review_url }}" class="button">
+                Review in Admin Panel
+            </a>
+            {% endif %}
+            
+            <p style="margin-top: 30px; color: #6b7280;">
+                This is an automated admin notification from {{ site_name }}.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>{{ site_name }} - Admin Panel</strong></p>
+            <p>
+                <a href="{{ frontend_url }}/admin">Admin Dashboard</a> |
+                <a href="{{ frontend_url }}/admin/notifications">Manage Notifications</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

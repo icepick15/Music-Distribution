@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["src", "frontend/src/lib/lib", "frontend/src/lib/utils.js", "frontend/src/components/ui"]
+}
