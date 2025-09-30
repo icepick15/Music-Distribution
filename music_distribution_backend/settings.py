@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'src.apps.notifications',
     'src.apps.admin_dashboard',
     'src.apps.support',
+    'src.apps.realtime_notifications',
     # 'src.apps.artists',
     # 'src.apps.analytics',
     # 'src.apps.admin_panel',
@@ -256,6 +257,9 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only allow all origins in debug mode
+
+# Frontend URL for email links
+FRONTEND_URL = 'http://localhost:5173'
 
 # File Storage Configuration (S3 or local)
 USE_S3 = config('USE_S3', default=False, cast=bool)

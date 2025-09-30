@@ -19,6 +19,8 @@ urlpatterns = [
     
     # Password management
     path('password/change/', views.PasswordChangeView.as_view(), name='password_change'),
+    path('password/reset/', views.PasswordResetRequestView.as_view(), name='password_reset'),
+    path('password/reset/confirm/', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     
     # Account management
     path('account/delete/', views.AccountDeletionView.as_view(), name='account_delete'),

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, X, Check, CheckCheck, Settings, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
 import notificationAPI from '../services/notificationService';
 import toast from 'react-hot-toast';
@@ -8,6 +9,7 @@ export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
   const { notifications, unreadCount, dispatch } = useNotifications();
 
   // Close dropdown when clicking outside
@@ -143,7 +145,7 @@ export default function NotificationDropdown() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-screen-sm bg-white rounded-lg shadow-lg border border-gray-200 z-50">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
@@ -168,7 +170,7 @@ export default function NotificationDropdown() {
           </div>
 
           {/* Notifications List */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-72 sm:max-h-96 overflow-y-auto">
             {loading ? (
               <div className="p-4 text-center text-gray-500">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
@@ -200,10 +202,9 @@ export default function NotificationDropdown() {
             <button
               onClick={() => {
                 setIsOpen(false);
-                // Navigate to notifications page if exists
-                // window.location.href = '/dashboard/notifications';
+                navigate('/dashboard/notifications');
               }}
-              className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+              className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium py-2 px-4 rounded hover:bg-blue-50 transition-colors"
             >
               View all notifications
             </button>
@@ -227,7 +228,7 @@ function NotificationItem({
 
   return (
     <div
-      className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+      className={`p-3 sm:p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
         isUnread ? 'bg-blue-50' : 'bg-white'
       } border-l-4 ${getPriorityColor(notification.priority)}`}
     >

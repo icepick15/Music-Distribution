@@ -5,6 +5,12 @@ import { SubscriptionProvider } from './context/SubscriptionContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { Toaster } from 'react-hot-toast';
 
+// Auth pages
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import PasswordReset from './pages/auth/PasswordReset';
+
 // Components
 import Navbar from './components/Navbar';
 import ModernFooter from './components/ModernFooter';
@@ -23,10 +29,6 @@ import DMCA from './pages/public/DMCA';
 import ContactUs from './pages/public/ContactUs';
 import HelpCenter from './pages/public/HelpCenter';
 
-// Auth Pages
-import Login from "./pages/auth/Login";
-import Register from './pages/auth/Register';
-
 // Dashboard Pages
 import Dashboard from './pages/Dashboard';
 import DashboardMusic from './pages/DashboardMusic';
@@ -34,6 +36,7 @@ import Upload from './pages/Upload';
 import SubscriptionPage from './pages/SubscriptionPage';
 import PaymentMethodsPage from './pages/PaymentMethodsPage';
 import Settings from './pages/Settings';
+import NotificationsPage from './pages/NotificationsPage';
 import CreateAlbum from './pages/CreateAlbum';
 import ScheduleRelease from './pages/ScheduleRelease';
 import ReleaseForm from './features/releases/ReleaseForm';
@@ -136,6 +139,8 @@ const AppRoutes = () => {
         {/* Auth Routes - Standalone */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<PasswordReset />} />
         <Route path="/admin-login" element={<Login />} />
 
         {/* Dashboard Routes - Protected with custom ProtectedRoute */}
@@ -182,6 +187,11 @@ const AppRoutes = () => {
         <Route path="/dashboard/settings" element={
           <ProtectedRoute requireAuth={true}>
             <Settings />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard/notifications" element={
+          <ProtectedRoute requireAuth={true}>
+            <NotificationsPage />
           </ProtectedRoute>
         } />
         <Route path="/dashboard/music/release" element={

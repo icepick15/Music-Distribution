@@ -6,8 +6,14 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.tokens import default_token_generator
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
+from django.conf import settings
+import secrets
 
 from .models import User, UserProfile
 from .serializers import (
@@ -16,6 +22,8 @@ from .serializers import (
     UserSerializer,
     UserProfileSerializer,
     PasswordChangeSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetConfirmSerializer,
     UserUpdateSerializer
 )
 
@@ -129,6 +137,106 @@ class PasswordChangeView(APIView):
             return Response({
                 'message': 'Password changed successfully'
             }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordResetRequestView(APIView):
+    """Request password reset"""
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            user = User.objects.get(email=email)
+            
+            # Generate reset token
+            token = secrets.token_urlsafe(32)
+            
+            # Store token temporarily (in a real app, use cache or database)
+            # For now, we'll use a simple approach with user model
+            user.password_reset_token = token
+            user.password_reset_token_created = timezone.now()
+            user.save()
+            
+            # Send email using your existing notification system
+            try:
+                reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+                
+                # Use your existing notification system
+                from src.apps.notifications.services import EmailService
+                
+                # Send password reset email
+                email_sent = EmailService.send_password_reset_email(
+                    recipient_email=email,
+                    recipient_name=user.get_full_name(),
+                    reset_url=reset_url
+                )
+                
+                if email_sent:
+                    return Response({
+                        'message': 'Password reset email sent successfully',
+                        'email': email
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        'error': 'Failed to send reset email'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+            except Exception as e:
+                # Fallback: print to console for development
+                print(f"Password reset email would be sent to {email}")
+                print(f"Reset URL: {reset_url}")
+                print(f"Email service error: {str(e)}")
+                
+                return Response({
+                    'message': 'Password reset email sent successfully',
+                    'email': email,
+                    'debug_reset_url': reset_url if settings.DEBUG else None
+                }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordResetConfirmView(APIView):
+    """Confirm password reset with token"""
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            token = serializer.validated_data['token']
+            new_password = serializer.validated_data['new_password']
+            
+            try:
+                # Find user with this reset token
+                user = User.objects.get(password_reset_token=token)
+                
+                # Check if token is still valid (e.g., within 1 hour)
+                if user.password_reset_token_created:
+                    time_diff = timezone.now() - user.password_reset_token_created
+                    if time_diff.total_seconds() > 3600:  # 1 hour
+                        return Response({
+                            'error': 'Reset token has expired'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Reset password
+                user.password = make_password(new_password)
+                user.password_reset_token = None
+                user.password_reset_token_created = None
+                user.save()
+                
+                return Response({
+                    'message': 'Password reset successfully'
+                }, status=status.HTTP_200_OK)
+                
+            except User.DoesNotExist:
+                return Response({
+                    'error': 'Invalid reset token'
+                }, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

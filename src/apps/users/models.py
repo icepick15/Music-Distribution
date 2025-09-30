@@ -50,6 +50,10 @@ class User(AbstractUser):
     is_artist_verified = models.BooleanField(default=False)
     verification_documents = models.JSONField(default=list, blank=True)
     
+    # Password reset fields
+    password_reset_token = models.CharField(max_length=100, blank=True, null=True)
+    password_reset_token_created = models.DateTimeField(blank=True, null=True)
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

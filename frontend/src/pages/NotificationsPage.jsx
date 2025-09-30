@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import { 
   Bell, 
   Settings, 
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 const NotificationsPage = () => {
-  const { getToken } = useAuth();
+  const { token } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +38,6 @@ const NotificationsPage = () => {
   const fetchNotifications = async () => {
     setIsLoading(true);
     try {
-      const token = await getToken();
       const response = await fetch(`${API_BASE_URL}/api/notifications/notifications/`, {
         headers: {
           'Authorization': `Bearer ${token}`,

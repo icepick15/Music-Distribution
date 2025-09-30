@@ -140,6 +140,29 @@ class PasswordChangeSerializer(serializers.Serializer):
         return value
 
 
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """Serializer for password reset request"""
+    email = serializers.EmailField(required=True)
+    
+    def validate_email(self, value):
+        """Check if user with this email exists"""
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("No user found with this email address")
+        return value
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """Serializer for password reset confirmation"""
+    token = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    new_password_confirm = serializers.CharField(required=True)
+    
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password_confirm']:
+            raise serializers.ValidationError("Password confirmation doesn't match")
+        return attrs
+
+
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating user profile"""
     # Treat social fields as plain char fields so we can normalize before URL validation

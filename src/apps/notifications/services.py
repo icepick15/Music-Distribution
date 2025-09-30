@@ -1,10 +1,112 @@
 from django.utils import timezone
 from .models import Notification, NotificationType, UserNotificationPreference
 from .tasks import send_notification_email, send_admin_notification_email
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
 import logging
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+
+class EmailService:
+    """
+    Service class for sending emails via ZeptoMail
+    """
+    
+    @staticmethod
+    def send_password_reset_email(recipient_email, recipient_name, reset_url):
+        """
+        Send password reset email
+        """
+        try:
+            subject = "🔐 Reset Your Password - Music Distribution"
+            
+            # Create HTML email content
+            html_content = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Password Reset</h1>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <h2 style="color: #333; margin-top: 0;">Hi {recipient_name},</h2>
+                    
+                    <p style="color: #666; font-size: 16px; line-height: 1.6;">
+                        We received a request to reset your password for your Music Distribution account.
+                    </p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_url}" 
+                           style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                  color: white; 
+                                  text-decoration: none; 
+                                  padding: 15px 30px; 
+                                  border-radius: 8px; 
+                                  font-weight: bold; 
+                                  font-size: 16px;
+                                  display: inline-block;">
+                            Reset My Password
+                        </a>
+                    </div>
+                    
+                    <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                        This link will expire in 1 hour for security reasons.
+                    </p>
+                    
+                    <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                        If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                    
+                    <p style="color: #999; font-size: 12px; text-align: center;">
+                        Music Distribution Platform<br>
+                        This is an automated email, please do not reply.
+                    </p>
+                </div>
+            </body>
+            </html>
+            """
+            
+            # Plain text version
+            text_content = f"""
+            Hi {recipient_name},
+
+            We received a request to reset your password for your Music Distribution account.
+
+            Click the link below to reset your password:
+            {reset_url}
+
+            This link will expire in 1 hour for security reasons.
+
+            If you didn't request this password reset, please ignore this email.
+
+            Music Distribution Platform
+            """
+            
+            # Send email using Django's email system (will use ZeptoMail backend)
+            success = send_mail(
+                subject=subject,
+                message=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[recipient_email],
+                html_message=html_content,
+                fail_silently=False
+            )
+            
+            if success:
+                logger.info(f"Password reset email sent successfully to {recipient_email}")
+                return True
+            else:
+                logger.error(f"Failed to send password reset email to {recipient_email}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error sending password reset email to {recipient_email}: {str(e)}")
+            return False
 
 
 class NotificationService:

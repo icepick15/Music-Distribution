@@ -13,6 +13,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 from src.apps.notifications.routing import websocket_urlpatterns
+from src.apps.realtime_notifications.routing import realtime_websocket_urlpatterns
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'music_distribution_backend.settings')
 
@@ -20,12 +21,15 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'music_distribution_backend.sett
 # is populated before importing code that may import ORM models.
 django_asgi_app = get_asgi_application()
 
+# Combine all WebSocket URL patterns
+all_websocket_urlpatterns = websocket_urlpatterns + realtime_websocket_urlpatterns
+
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
-                websocket_urlpatterns
+                all_websocket_urlpatterns
             )
         )
     ),
