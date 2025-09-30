@@ -144,13 +144,10 @@ class SongListCreateView(generics.ListCreateAPIView):
                 # Send admin notification about new upload
                 MusicNotifications.send_upload_notification_to_admin(song)
 
-                # If no remaining credits and no yearly, revert role to 'user'
+                # Note: Keep user as 'artist' even when credits reach 0
+                # They should be able to buy more credits to continue uploading
                 if pps.remaining_credits == 0:
-                    # Double-check no other active yearly subscription
-                    if not (Subscription.objects.filter(user=user, subscription_type='yearly', status='active').first()):
-                        user.role = 'user'
-                        user.save()
-                        logger.info("Reverted user role to 'user' after using last credit")
+                    logger.info(f"User {user.id} has used all credits but remains an artist")
                 return
 
             # No valid subscription/credits
@@ -384,6 +381,8 @@ def user_music_stats(request):
             'total_songs': songs.count(),
             'draft_songs': songs.filter(status='draft').count(),
             'pending_songs': songs.filter(status='pending').count(),
+            'approved_songs': songs.filter(status='approved').count(),
+            'awaiting_review': songs.filter(status__in=['draft', 'pending']).count(),
             'distributed_songs': songs.filter(status='distributed').count(),
             'total_streams': sum(song.total_streams for song in songs),
             'total_downloads': sum(song.total_downloads for song in songs),
@@ -399,6 +398,8 @@ def user_music_stats(request):
             'total_songs': 0,
             'draft_songs': 0,
             'pending_songs': 0,
+            'approved_songs': 0,
+            'awaiting_review': 0,
             'distributed_songs': 0,
             'total_streams': 0,
             'total_downloads': 0,

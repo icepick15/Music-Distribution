@@ -1,101 +1,78 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   CheckIcon, 
   XMarkIcon,
   SparklesIcon,
   StarIcon,
-  RocketLaunchIcon
+  RocketLaunchIcon,
+  MusicalNoteIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 
 const ModernPricing = () => {
-  const [billingPeriod, setBillingPeriod] = useState('monthly');
+  const { isSignedIn } = useAuth();
+  const [billingCycle, setBillingCycle] = useState('yearly');
 
   const plans = [
     {
-      name: "Starter",
-      icon: RocketLaunchIcon,
-      description: "Perfect for new artists getting started",
-      monthlyPrice: 19,
-      yearlyPrice: 190,
-      color: "blue",
-      gradient: "from-blue-500 to-cyan-500",
+      id: 'pay_per_song',
+      name: 'Pay Per Song',
+      icon: MusicalNoteIcon,
+      price: '₦5,000',
+      period: 'per upload',
+      description: 'Perfect for artists just starting out or releasing occasionally',
       features: [
-        "Distribute to 50+ platforms",
-        "Basic analytics dashboard",
-        "Email support",
-        "Keep 85% of royalties",
-        "5 releases per month",
-        "Basic content protection"
+        'Upload individual songs',
+        'Distribute to 100+ platforms', 
+        'Keep 100% of your royalties',
+        'Basic analytics dashboard',
+        'Standard processing (3-5 days)',
+        'Community support',
+        'No subscription commitment'
       ],
       limitations: [
-        "Advanced analytics",
-        "Priority support",
-        "Custom branding"
+        'No album creation',
+        'No release scheduling', 
+        'Limited analytics'
       ],
-      cta: "Start Free Trial",
-      popular: false
+      popular: false,
+      cta: 'Start Uploading',
+      color: 'gray',
+      gradient: "from-gray-500 to-slate-500"
     },
     {
-      name: "Professional",
+      id: 'yearly',
+      name: 'Yearly Premium',
       icon: SparklesIcon,
-      description: "Most popular for serious artists",
-      monthlyPrice: 39,
-      yearlyPrice: 390,
-      color: "purple",
-      gradient: "from-purple-500 to-pink-500",
+      price: '₦39,900',
+      originalPrice: '₦50,400',
+      period: 'per year',
+      savings: 'Save ₦10,500',
+      description: 'Best value for serious artists and consistent releases',
       features: [
-        "Distribute to 100+ platforms",
-        "Advanced analytics & insights",
-        "Priority email & chat support",
-        "Keep 95% of royalties",
-        "Unlimited releases",
-        "Advanced content protection",
-        "Social media automation",
-        "Playlist pitching tools"
-      ],
-      limitations: [
-        "White-label reports"
-      ],
-      cta: "Start Professional",
-      popular: true
-    },
-    {
-      name: "Enterprise",
-      icon: StarIcon,
-      description: "For labels and high-volume artists",
-      monthlyPrice: 99,
-      yearlyPrice: 990,
-      color: "gold",
-      gradient: "from-yellow-500 to-orange-500",
-      features: [
-        "Distribute to 150+ platforms",
-        "Real-time analytics & reporting",
-        "24/7 priority support + phone",
-        "Keep 100% of royalties",
-        "Unlimited everything",
-        "Enterprise content protection",
-        "Advanced social automation",
-        "Dedicated playlist contacts",
-        "White-label reporting",
-        "API access",
-        "Custom integrations"
+        'Unlimited song uploads',
+        'Distribute to 150+ platforms',
+        'Keep 100% of your royalties', 
+        'Advanced analytics & insights',
+        'Album & EP creation',
+        'Release scheduling',
+        'Priority processing (1-2 days)',
+        'Pre-order campaigns',
+        'Revenue optimization tools',
+        'Priority email support',
+        'Early access to new features'
       ],
       limitations: [],
-      cta: "Contact Sales",
-      popular: false
+      popular: true,
+      cta: 'Go Premium',
+      color: 'purple',
+      gradient: "from-purple-500 to-pink-500"
     }
   ];
 
-  const getPrice = (plan) => {
-    return billingPeriod === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
-  };
 
-  const getSavings = (plan) => {
-    const monthlyCost = plan.monthlyPrice * 12;
-    const yearlyCost = plan.yearlyPrice;
-    return monthlyCost - yearlyCost;
-  };
 
   return (
     <section className="py-20 bg-white">
@@ -121,37 +98,31 @@ const ModernPricing = () => {
           </p>
 
           {/* Billing Toggle */}
-          <div className="inline-flex items-center bg-gray-100 rounded-full p-1">
-            <button
-              onClick={() => setBillingPeriod('monthly')}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                billingPeriod === 'monthly' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
+          <div className="flex items-center justify-center mb-8">
+            <span className={`mr-3 ${billingCycle === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}>
               Monthly
-            </button>
+            </span>
             <button
-              onClick={() => setBillingPeriod('yearly')}
-              className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                billingPeriod === 'yearly' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              onClick={() => setBillingCycle(billingCycle === 'yearly' ? 'monthly' : 'yearly')}
+              className="relative inline-flex h-6 w-11 items-center rounded-full bg-purple-600 transition-colors duration-200"
             >
-              Yearly
-              <span className="ml-2 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
-                Save 20%
-              </span>
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ${
+                billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-1'
+              }`} />
             </button>
+            <span className={`ml-3 ${billingCycle === 'yearly' ? 'text-gray-900' : 'text-gray-500'}`}>
+              Yearly
+            </span>
+            {billingCycle === 'yearly' && (
+              <span className="ml-2 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Save 28%</span>
+            )}
           </div>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid lg:grid-cols-3 gap-8 lg:gap-6">
+        <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {plans.map((plan, index) => (
-            <div key={index} className={`relative ${plan.popular ? 'lg:scale-105' : ''}`}>
+            <div key={plan.id} className={`relative ${plan.popular ? 'lg:scale-105' : ''}`}>
               
               {/* Popular Badge */}
               {plan.popular && (
@@ -189,26 +160,29 @@ const ModernPricing = () => {
                     {/* Price */}
                     <div className="mb-6">
                       <div className="flex items-baseline justify-center">
-                        <span className="text-5xl font-bold text-gray-900">${getPrice(plan)}</span>
-                        <span className="text-gray-500 ml-2">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
+                        {plan.originalPrice && (
+                          <span className="text-lg text-gray-400 line-through mr-2">{plan.originalPrice}</span>
+                        )}
+                        <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
+                        <span className="text-gray-500 ml-2">{plan.period}</span>
                       </div>
-                      {billingPeriod === 'yearly' && (
+                      {plan.savings && (
                         <div className="text-sm text-green-600 font-medium mt-1">
-                          Save ${getSavings(plan)} per year
+                          {plan.savings}
                         </div>
                       )}
                     </div>
 
                     {/* CTA Button */}
                     <Link
-                      to={plan.name === 'Enterprise' ? '/contact' : '/register'}
+                      to={isSignedIn ? '/dashboard/subscription' : '/'}
                       className={`w-full inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
                         plan.popular
                           ? `bg-gradient-to-r ${plan.gradient} text-white hover:shadow-lg`
                           : 'bg-gray-900 text-white hover:bg-gray-800'
                       }`}
                     >
-                      {plan.cta}
+                      {isSignedIn ? (plan.id === 'yearly' ? 'Upgrade Plan' : 'Buy Credits') : plan.cta}
                     </Link>
                   </div>
 

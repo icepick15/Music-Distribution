@@ -49,21 +49,21 @@ const DashboardLayout = ({ children }) => {
         <div className="flex-1 lg:pl-0">
           {/* Mobile header */}
           <div className="lg:hidden">
-            <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-4">
+            <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3">
               <button
                 type="button"
-                className="text-gray-500 hover:text-gray-900"
+                className="text-gray-500 hover:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 onClick={() => setSidebarOpen(true)}
               >
                 <Bars3Icon className="h-6 w-6" />
               </button>
               <h1 className="text-lg font-semibold text-gray-900">Dashboard</h1>
-              <div className="w-6" /> {/* Spacer */}
+              <div className="w-10" /> {/* Spacer */}
             </div>
           </div>
 
           {/* Page content */}
-          <main className="flex-1">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 max-w-full overflow-hidden">
             {children}
           </main>
         </div>

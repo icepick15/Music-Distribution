@@ -16,7 +16,7 @@ services:
       - static_files:/app/staticfiles
     environment:
       - DEBUG=1
-      - DATABASE_URL=${DATABASE_URL}
+      # Remove DATABASE_URL to use SQLite fallback
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -33,7 +33,8 @@ services:
       - media_files:/app/media
     environment:
       - DEBUG=1
-      - DATABASE_URL=${DATABASE_URL}
+      # Remove DATABASE_URL to use SQLite fallback
+      - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - redis

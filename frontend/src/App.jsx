@@ -2,8 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
-import { NotificationProvider } from './components/notifications/NotificationProvider';
-import ToastNotifications from './components/notifications/ToastNotifications';
+import { NotificationProvider } from './context/NotificationContext';
 import { Toaster } from 'react-hot-toast';
 
 // Components
@@ -42,6 +41,7 @@ import ReleaseSuccess from "@/features/releases/ReleaseConfirmation";
 import TicketsPage from './features/tickets/TicketsPage';
 import ArtistPage from './pages/ArtistPage';
 import StreamDashboard from './pages/StreamDashboard';
+import NotificationTest from './pages/NotificationTest';
 
 // Admin Pages
 import AdminDashboard from './pages/AdminDashboard';
@@ -256,8 +256,6 @@ function App() {
                 error: { duration: 6000, iconTheme: { primary: '#EF4444', secondary: '#fff' } }
               }}
             />
-            {/* Add our custom toast notifications */}
-            <ToastNotifications />
           </Router>
         </NotificationProvider>
       </SubscriptionProvider>

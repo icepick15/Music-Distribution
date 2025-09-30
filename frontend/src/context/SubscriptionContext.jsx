@@ -83,7 +83,7 @@ export const SubscriptionProvider = ({ children }) => {
       return subscription.status === 'active' && new Date(subscription.end_date) > new Date();
     } else if (subscription.subscription_type === 'pay_per_song') {
       // Check if user has remaining credits
-      const remainingCredits = (subscription.song_credits || 0) - (subscription.credits_used || 0);
+      const remainingCredits = subscription.remaining_credits || 0;
       return remainingCredits > 0 && subscription.status === 'active';
     } else if (subscription.subscription_type === 'free') {
       // Free users might have limited uploads for demo/testing purposes
@@ -101,7 +101,7 @@ export const SubscriptionProvider = ({ children }) => {
     if (subscription.subscription_type === 'yearly') {
       return new Date(subscription.end_date) > new Date() ? 'unlimited' : 0;
     } else if (subscription.subscription_type === 'pay_per_song') {
-      const remaining = (subscription.song_credits || 0) - (subscription.credits_used || 0);
+      const remaining = subscription.remaining_credits || 0;
       return Math.max(0, remaining);
     } else if (subscription.subscription_type === 'free') {
       return 'demo'; // or a specific number like 1-3 for free users
@@ -121,8 +121,8 @@ export const SubscriptionProvider = ({ children }) => {
           // Update local subscription state
           setSubscription(prev => ({
             ...prev,
-            song_credits: (prev.song_credits || 0) - 1,
-            credits_used: (prev.credits_used || 0) + 1
+            credits_used: (prev.credits_used || 0) + 1,
+            remaining_credits: Math.max(0, (prev.remaining_credits || 0) - 1)
           }));
           return true;
         }

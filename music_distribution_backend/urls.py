@@ -19,13 +19,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
-from test_users_api import test_users_api
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Test endpoint
-    path('test-users/', test_users_api, name='test-users'),
     
     # Health check endpoints
     path('api/health/', views.api_health, name='api_health'),
@@ -36,6 +34,7 @@ urlpatterns = [
     path('api/songs/', include('src.apps.songs.urls')),
     path('api/payments/', include('src.apps.payments.urls')),
     path('api/notifications/', include('src.apps.notifications.urls')),
+    path('api/support/', include('src.apps.support.urls')),
     path('', include('src.apps.admin_dashboard.urls')),  # Admin dashboard
     # path('api/artists/', include('src.apps.artists.urls')),
     # path('api/analytics/', include('src.apps.analytics.urls')),

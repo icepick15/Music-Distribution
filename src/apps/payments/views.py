@@ -140,17 +140,21 @@ class SubscriptionUpgradeView(APIView):
             )
         
         # Check if user already has this subscription
-        existing = Subscription.objects.filter(
-            user=request.user,
-            subscription_type=subscription_type,
-            status='active'
-        ).first()
-        
-        if existing:
-            return Response(
-                {'error': 'You already have this subscription'}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # For pay-per-song, allow multiple purchases to add more credits
+        # For yearly, prevent duplicate subscriptions
+        if subscription_type == 'yearly':
+            existing = Subscription.objects.filter(
+                user=request.user,
+                subscription_type=subscription_type,
+                status='active'
+            ).first()
+            
+            if existing:
+                return Response(
+                    {'error': 'You already have an active yearly subscription'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        # For pay-per-song, we allow multiple purchases to add credits
         
         service = PaymentService()
         
@@ -275,6 +279,69 @@ class PaymentVerificationView(APIView):
             )
 
 
+class AutoVerifyPendingPaymentsView(APIView):
+    """Auto-verify pending payments for current user"""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            # Use database transaction to prevent concurrent modifications
+            with db_transaction.atomic():
+                # Get all pending transactions for this user with SELECT FOR UPDATE to prevent race conditions
+                pending_transactions = Transaction.objects.select_for_update().filter(
+                    user=request.user,
+                    status='pending'
+                ).order_by('-initiated_at')[:5]  # Only check last 5 pending
+                
+                if not pending_transactions:
+                    return Response({
+                        'verified_count': 0,
+                        'message': 'No pending payments found'
+                    })
+                
+                logger.info(f"Found {pending_transactions.count()} pending transactions for user {request.user.id}")
+                
+                service = PaymentService()
+                verified_count = 0
+                
+                for transaction in pending_transactions:
+                    logger.info(f"Attempting to verify transaction: {transaction.paystack_reference}")
+                    
+                    # Skip if this transaction is already being processed
+                    if transaction.status != 'pending':
+                        continue
+                    
+                    # Try to verify each pending transaction
+                    success, result = service.handle_payment_success(transaction.paystack_reference)
+                    
+                    if success:
+                        verified_count += 1
+                        logger.info(f"Successfully verified transaction: {transaction.paystack_reference}")
+                    else:
+                        logger.warning(f"Failed to verify transaction {transaction.paystack_reference}: {result}")
+                
+                if verified_count > 0:
+                    # Return success response with details
+                    return Response({
+                        'verified_count': verified_count,
+                        'message': f'Successfully verified {verified_count} payment(s)',
+                        'status': 'success'
+                    })
+                else:
+                    return Response({
+                        'verified_count': 0,
+                        'message': 'No payments could be verified at this time'
+                    })
+                    
+        except Exception as e:
+            logger.error(f"Error in auto-verify pending payments: {str(e)}")
+            return Response({
+                'error': 'Failed to verify pending payments',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class ChargeAuthorizationView(APIView):
     """Charge a saved payment method"""
     
@@ -374,19 +441,33 @@ class PricingView(APIView):
     
     def get(self, request):
         from .services import PRICING_CONFIG
+        from decimal import Decimal
         
-        return Response({
+        # Convert Decimal objects to float for JSON serialization
+        def convert_decimals(obj):
+            if isinstance(obj, dict):
+                return {key: convert_decimals(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_decimals(item) for item in obj]
+            elif isinstance(obj, Decimal):
+                return float(obj)
+            return obj
+        
+        pricing_data = {
             'subscriptions': {
-                'pay_per_song': PRICING_CONFIG['pay_per_song'],
-                'yearly': PRICING_CONFIG['yearly']
+                'pay_per_song': convert_decimals(PRICING_CONFIG['pay_per_song']),
+                'yearly': convert_decimals(PRICING_CONFIG['yearly'])
             },
-            'credit_packs': PRICING_CONFIG['credit_packs']
-        })
+            'credit_packs': convert_decimals(PRICING_CONFIG['credit_packs'])
+        }
+        
+        return Response(pricing_data)
 
 @api_view(['POST'])
 @permission_classes([])
 def dev_set_role(request):
     """Dev-only: set a user's role and subscription for local testing. Only works when DEBUG=True."""
+    import json
     from django.conf import settings
     if not settings.DEBUG:
         return Response({'error': 'Not allowed in non-debug mode'}, status=status.HTTP_403_FORBIDDEN)

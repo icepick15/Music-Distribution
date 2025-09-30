@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -13,54 +13,117 @@ import {
   CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 
-// API helper function (use the same one from AuthContext)
-const apiCall = async (endpoint, method = 'GET', data = null) => {
-  const token = localStorage.getItem('authToken');
-  const url = `http://127.0.0.1:8000/api${endpoint}`;
-  
-  const config = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
-    },
-  };
-
-  if (data) {
-    config.body = JSON.stringify(data);
-  }
-
-  try {
-    const response = await fetch(url, config);
-    const responseData = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(responseData.detail || responseData.error || 'An error occurred');
-    }
-    
-    return { success: true, data: responseData };
-  } catch (error) {
-    console.error(`API call failed for ${endpoint}:`, error);
-    return { success: false, error: error.message };
-  }
-};
-
 const SubscriptionPage = () => {
-  const { user } = useAuth();
+  const { user, triggerDataRefresh, apiCall } = useAuth();
   const { fetchSubscription, subscription } = useSubscription();
   const navigate = useNavigate();
   const [loadingPayPerSong, setLoadingPayPerSong] = useState(false);
   const [loadingYearly, setLoadingYearly] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successDetails, setSuccessDetails] = useState(null);
+  const [showEmergencyActions, setShowEmergencyActions] = useState(false);
+  const [paymentModalOpened, setPaymentModalOpened] = useState(false);
+  const [paymentInitiated, setPaymentInitiated] = useState(false); // Track when payment is actually initiated
 
   // Derive from subscription context (backend truth) not user metadata which may be stale
   const subscriptionType = subscription?.subscription_type || 'free';
-  const songCredits = subscription?.song_credits || 0;
+  const songCredits = subscription?.remaining_credits || 0;
   const yearlyFeatures = user?.publicMetadata?.yearlyFeatures || false;
   const uploadCount = user?.publicMetadata?.uploadCount || 0;
   const { canUpload } = useSubscription();
   const verifyingRef = useRef(false);
+  const autoVerifyingRef = useRef(false); // Prevent concurrent auto-verifications
+
+  // Simple auto-verification function - like the original working version
+  const autoVerifyPendingPayments = async () => {
+    try {
+      // Prevent concurrent requests
+      if (autoVerifyingRef.current) {
+        console.log('⏭️ Auto-verification already in progress');
+        return false;
+      }
+      
+      autoVerifyingRef.current = true;
+      console.log('🔍 Auto-checking for pending payments...');
+      
+      const response = await apiCall('/payments/verify-pending/', {
+        method: 'POST'
+      });
+      
+      if (response && response.verified_count > 0) {
+        console.log(`✅ Auto-verified ${response.verified_count} pending payment(s)`);
+        
+        // Refresh data and reset states
+        await Promise.all([
+          fetchSubscription(),
+          triggerDataRefresh()
+        ]);
+        
+        toast.success(`Payment completed! ${response.verified_count} credit(s) added to your account.`);
+        
+        // Reset all states
+        setLoadingPayPerSong(false);
+        setLoadingYearly(false);
+        setShowEmergencyActions(false);
+        setPaymentModalOpened(false);
+        setPaymentInitiated(false);
+        
+        return true;
+      } else {
+        console.log('🔍 No pending payments found to verify');
+        return false;
+      }
+    } catch (error) {
+      console.error('Auto-verify failed:', error);
+      return false;
+    } finally {
+      autoVerifyingRef.current = false;
+    }
+  };
+
+  // Emergency actions timer when payment is loading
+  useEffect(() => {
+    console.log('🔄 Emergency timer useEffect triggered:', { 
+      loadingPayPerSong, 
+      loadingYearly, 
+      timestamp: new Date().toLocaleTimeString()
+    });
+    
+    let timer;
+    
+    if (loadingPayPerSong || loadingYearly) {
+      // Show emergency actions after 15 seconds
+      timer = setTimeout(() => {
+        setShowEmergencyActions(true);
+        console.log('⏰ Payment processing timeout - showing emergency actions');
+      }, 15000);
+    } else {
+      console.log('🔄 Resetting emergency actions');
+      setShowEmergencyActions(false);
+      setPaymentModalOpened(false);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [loadingPayPerSong, loadingYearly]);
+
+  // Show emergency actions when payment succeeds (manual verification is more reliable)
+  useEffect(() => {
+    console.log('💳 Payment state changed:', { 
+      paymentInitiated,
+      timestamp: new Date().toLocaleTimeString()
+    });
+    
+    if (paymentInitiated) {
+      console.log('💳 Payment successful - emergency actions available for manual verification');
+      setShowEmergencyActions(true);
+    } else {
+      console.log('🔄 Resetting payment state');
+      setShowEmergencyActions(false);
+      autoVerifyingRef.current = false;
+    }
+  }, [paymentInitiated]);
 
   const handleUpgrade = async (plan) => {
     // Set loading state for the specific plan
@@ -72,15 +135,20 @@ const SubscriptionPage = () => {
     
     try {
       // Get pricing information
-      const pricingResponse = await apiCall('/payments/pricing/');
-      if (!pricingResponse.success) {
-        toast.error('Failed to get pricing information');
+      console.log('Fetching pricing information...');
+      console.log('User authentication:', user?.email, 'has token:', !!localStorage.getItem('authToken'));
+      
+      const pricingData = await apiCall('/payments/pricing/');
+      console.log('Pricing data received:', pricingData);
+      
+      if (!pricingData || !pricingData.subscriptions) {
+        toast.error('Invalid pricing data received');
         if (plan === 'pay_per_song') setLoadingPayPerSong(false);
         if (plan === 'yearly') setLoadingYearly(false);
         return;
       }
       
-      const pricing = pricingResponse.data.subscriptions[plan];
+      const pricing = pricingData.subscriptions[plan];
       if (!pricing) {
         toast.error('Invalid subscription plan');
         if (plan === 'pay_per_song') setLoadingPayPerSong(false);
@@ -88,79 +156,97 @@ const SubscriptionPage = () => {
         return;
       }
       
+      console.log('Using pricing for plan:', plan, pricing);
+      
       // Initialize payment
-      const paymentResponse = await apiCall('/payments/subscription/upgrade/', 'POST', {
-        subscription_type: plan,
-        auto_renew: true
+      const paymentData = await apiCall('/payments/subscription/upgrade/', {
+        method: 'POST',
+        body: JSON.stringify({
+          subscription_type: plan,
+          auto_renew: true
+        })
       });
       
-      if (paymentResponse.success) {
-        console.log('Payment Response:', paymentResponse.data); // Debug log
-        console.log('User email:', user.email); // Debug user email
-        console.log('User object:', user); // Debug full user object
-        
-        // Check if PaystackPop is available
-        if (!window.PaystackPop) {
-          toast.error('Payment system not loaded. Please refresh the page and try again.');
-          if (plan === 'pay_per_song') setLoadingPayPerSong(false);
-          if (plan === 'yearly') setLoadingYearly(false);
-          return;
-        }
-        
-        // Verify required data
-        if (!paymentResponse.data.reference || !paymentResponse.data.amount) {
-          toast.error('Invalid payment data received');
-          if (plan === 'pay_per_song') setLoadingPayPerSong(false);
-          if (plan === 'yearly') setLoadingYearly(false);
-          return;
-        }
-        
-        // Get user email with fallbacks
-        let userEmail = user.email || 
-                       user.emailAddresses?.[0]?.emailAddress || 
-                       user.primaryEmailAddress?.emailAddress ||
-                       'test@example.com'; // Fallback for testing
-        
-        // Verify user email
-        if (!userEmail || !userEmail.includes('@')) {
-          userEmail = 'test@example.com'; // Use test email if invalid
-          console.warn('Using fallback email for payment:', userEmail);
-        }
-        
-        console.log('Using email for payment:', userEmail);
-        
-        // Open Paystack payment popup
-        const handler = window.PaystackPop.setup({
-          key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-          email: userEmail,
-          amount: paymentResponse.data.amount * 100, // Convert to kobo (amount is already in Naira)
-          currency: 'NGN',
-          ref: paymentResponse.data.reference,
-          onSuccess: function(transaction) {
-            console.log('Payment successful:', transaction);
-            // Verify payment
-            verifyPayment(transaction.reference, plan);
-          },
-          onClose: function() {
-            // Paystack calls onClose for both cancel and after success close. If still loading and not verifying, treat as cancel.
-            if (!verifyingRef.current) {
-              console.log('Payment popup closed before verification');
-              toast.error('Payment popup closed');
-              if (plan === 'pay_per_song') setLoadingPayPerSong(false);
-              if (plan === 'yearly') setLoadingYearly(false);
-            }
-          }
-        });
-        
-        handler.openIframe();
-      } else {
-        toast.error(`Failed to initialize payment: ${paymentResponse.error || 'Unknown error'}`);
+      console.log('Payment Response:', paymentData); // Debug log
+      console.log('User email:', user.email); // Debug user email
+      console.log('User object:', user); // Debug full user object
+      
+      // Check if PaystackPop is available
+      if (!window.PaystackPop) {
+        toast.error('Payment system not loaded. Please refresh the page and try again.');
         if (plan === 'pay_per_song') setLoadingPayPerSong(false);
         if (plan === 'yearly') setLoadingYearly(false);
+        return;
       }
+      
+      // Verify required data
+      if (!paymentData.reference || !paymentData.amount) {
+        toast.error('Invalid payment data received');
+        if (plan === 'pay_per_song') setLoadingPayPerSong(false);
+        if (plan === 'yearly') setLoadingYearly(false);
+        return;
+      }
+      
+      // Get user email with fallbacks
+      let userEmail = user.email || 
+                     user.emailAddresses?.[0]?.emailAddress || 
+                     user.primaryEmailAddress?.emailAddress ||
+                     'test@example.com'; // Fallback for testing
+      
+      // Verify user email
+      if (!userEmail || !userEmail.includes('@')) {
+        userEmail = 'test@example.com'; // Use test email if invalid
+        console.warn('Using fallback email for payment:', userEmail);
+      }
+      
+      console.log('Using email for payment:', userEmail);
+      
+      // Open Paystack payment popup
+      const handler = window.PaystackPop.setup({
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+        email: userEmail,
+        amount: paymentData.amount * 100, // Convert to kobo (amount is already in Naira)
+        currency: 'NGN',
+        ref: paymentData.reference,
+        onSuccess: function(transaction) {
+          console.log('🎉 Paystack payment successful:', transaction);
+          setPaymentInitiated(true);
+          
+          // Guide user to manually verify - this is more reliable than auto-verification
+          toast.success('🎉 Payment successful! Please click "Verify Payment" below to complete your subscription.', {
+            duration: 10000,
+            position: 'top-center'
+          });
+          console.log('💳 Payment successful - user guided to manual verification');
+        },
+        onClose: function() {
+          // Paystack calls onClose for both cancel and after success close. If still loading and not verifying, treat as cancel.
+          if (!verifyingRef.current) {
+            console.log('Payment popup closed before verification');
+            toast.error('Payment cancelled by user');
+            if (plan === 'pay_per_song') setLoadingPayPerSong(false);
+            if (plan === 'yearly') setLoadingYearly(false);
+            setPaymentModalOpened(false); // Reset modal state on close
+            setPaymentInitiated(false); // Reset payment initiation state
+            // Redirect to dashboard/music with cancelled message
+            navigate('/dashboard/music', {
+              state: {
+                message: 'Payment was cancelled. No changes were made to your subscription.',
+                type: 'error'
+              }
+            });
+          }
+        }
+      });
+      
+      // Track that payment modal is opening
+      console.log('🚀 Opening Paystack payment modal...');
+      setPaymentModalOpened(true);
+      handler.openIframe();
+      
     } catch (error) {
       console.error('Payment error:', error);
-      toast.error('Payment initialization failed');
+      toast.error(`Payment initialization failed: ${error.message || 'Unknown error'}`);
       if (plan === 'pay_per_song') setLoadingPayPerSong(false);
       if (plan === 'yearly') setLoadingYearly(false);
     }
@@ -170,19 +256,37 @@ const SubscriptionPage = () => {
     try {
       if (verifyingRef.current) return; // prevent duplicate
       verifyingRef.current = true;
-      console.log('Verifying payment with reference:', reference);
+      console.log('🔄 Verifying payment with reference:', reference);
       
-      const response = await apiCall('/payments/verify/', 'POST', { reference });
-      console.log('Payment verification response:', response);
+      // Wait a moment for backend processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      if (response.success) {
-        // Reset loading states
-        setLoadingPayPerSong(false);
-        setLoadingYearly(false);
+      // Add timeout wrapper for verification call
+      const verifyWithTimeout = async () => {
+        return Promise.race([
+          apiCall('/payments/verify/', 'POST', { reference }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Verification timeout - took longer than 30 seconds')), 30000)
+          )
+        ]);
+      };
+      
+      const response = await verifyWithTimeout();
+      console.log('✅ Payment verification response:', response);
+      
+      // Reset all payment-related states IMMEDIATELY regardless of response
+      setLoadingPayPerSong(false);
+      setLoadingYearly(false);
+      setShowEmergencyActions(false);
+      setPaymentModalOpened(false);
+      setPaymentInitiated(false);
+      
+      if (response && response.status === 'success') {
+        console.log('🎉 Payment verified successfully!');
         
         // Prepare success details
-        const subscriptionType = response.data.subscription_type;
-        const songCredits = response.data.song_credits;
+        const subscriptionType = response.subscription_type;
+        const songCredits = response.remaining_credits || response.song_credits;
         
         let planName, benefits;
         if (plan === 'yearly') {
@@ -193,11 +297,11 @@ const SubscriptionPage = () => {
           benefits = `${songCredits} upload credit${songCredits > 1 ? 's' : ''}`;
         }
         
-        // Show success toast with details
+        // Show immediate success feedback
         toast.success(
           `🎉 Payment successful! You now have ${plan === 'yearly' ? 'unlimited uploads' : songCredits + ' upload credit' + (songCredits > 1 ? 's' : '')}`,
           { 
-            duration: 5000,
+            duration: 6000,
             style: {
               background: '#10B981',
               color: 'white',
@@ -206,6 +310,7 @@ const SubscriptionPage = () => {
           }
         );
         
+        // Set modal data
         setSuccessDetails({
           planName,
           benefits,
@@ -216,21 +321,71 @@ const SubscriptionPage = () => {
         // Show success modal
         setShowSuccessModal(true);
         
-        // Refresh subscription data
-        await fetchSubscription();
+        // Force refresh data in background with retries
+        console.log('🔄 Refreshing user data...');
+        const refreshData = async () => {
+          try {
+            await Promise.all([
+              fetchSubscription(),
+              triggerDataRefresh()
+            ]);
+            console.log('✅ Data refreshed successfully');
+          } catch (err) {
+            console.warn('⚠️ Data refresh failed, retrying...', err);
+            // Retry once after a short delay
+            setTimeout(async () => {
+              try {
+                await Promise.all([
+                  fetchSubscription(),
+                  triggerDataRefresh()
+                ]);
+                console.log('✅ Data refreshed on retry');
+              } catch (retryErr) {
+                console.error('❌ Data refresh failed on retry:', retryErr);
+              }
+            }, 2000);
+          }
+        };
+        
+        refreshData();
         
       } else {
-        toast.error('Payment verification failed: ' + (response.error || 'Unknown error'));
-        setLoadingPayPerSong(false);
-        setLoadingYearly(false);
+        console.error('❌ Payment verification failed:', response);
+        toast.error('Payment verification failed. Please contact support if your payment was charged.');
+        
+        navigate('/dashboard/music', {
+          state: {
+            message: 'Payment verification failed. Please contact support if your payment was charged.',
+            type: 'error'
+          }
+        });
       }
     } catch (error) {
-      console.error('Payment verification failed:', error);
-      toast.error('Payment verification failed: ' + error.message);
+      console.error('❌ Payment verification error:', error);
+      
+      // Reset ALL loading states and emergency actions - FORCE RESET
       setLoadingPayPerSong(false);
       setLoadingYearly(false);
+      setShowEmergencyActions(false);
+      
+      toast.error('Payment verification failed: ' + error.message);
+      
+      navigate('/dashboard/music', {
+        state: {
+          message: 'Payment verification failed. Please contact support if your payment was charged.',
+          type: 'error'
+        }
+      });
     } finally {
       verifyingRef.current = false;
+      // Final safety net - force reset all payment states after a delay
+      setTimeout(() => {
+        setLoadingPayPerSong(false);
+        setLoadingYearly(false);
+        setShowEmergencyActions(false);
+        setPaymentModalOpened(false);
+        setPaymentInitiated(false);
+      }, 1000);
     }
   };
 
@@ -238,8 +393,8 @@ const SubscriptionPage = () => {
     setShowSuccessModal(false);
     setSuccessDetails(null);
     
-    // Navigate to dashboard with success message
-    navigate('/dashboard', { 
+    // Navigate to music dashboard with success message
+    navigate('/dashboard/music', { 
       state: { 
         message: 'Subscription updated successfully! You can now upload songs.',
         type: 'success'
@@ -250,20 +405,50 @@ const SubscriptionPage = () => {
   const handleContinueToUpload = () => {
     setShowSuccessModal(false);
     setSuccessDetails(null);
-    navigate('/upload');
+    navigate('/upload', {
+      state: {
+        message: 'Subscription updated successfully! You can now upload your music.',
+        type: 'success'
+      }
+    });
   };
+
+  // Emergency verification function for stuck payments
+  const forceVerifyPayment = async () => {
+    try {
+      // Reset all payment-related states
+      setLoadingPayPerSong(false);
+      setLoadingYearly(false);
+      setShowEmergencyActions(false);
+      setPaymentModalOpened(false);
+      setPaymentInitiated(false);
+      
+      // Force refresh user data
+      await Promise.all([
+        fetchSubscription(),
+        triggerDataRefresh()
+      ]);
+      
+      toast.success('Account status refreshed successfully!');
+    } catch (error) {
+      console.error('Force refresh failed:', error);
+      toast.error('Failed to refresh account status: ' + error.message);
+    }
+  };
+
+
 
   // Test function for payment verification
   const testPaymentVerification = async () => {
     try {
       const response = await apiCall('/payments/dev/test-verify/');
-      if (response.success) {
-        toast.success(`Test result: ${JSON.stringify(response.data, null, 2)}`);
-        console.log('Test verification result:', response.data);
+      if (response) {
+        toast.success(`Test result: ${JSON.stringify(response, null, 2)}`);
+        console.log('Test verification result:', response);
         // Refresh subscription after test
         await fetchSubscription();
       } else {
-        toast.error(`Test failed: ${response.error}`);
+        toast.error('Test failed: No response received');
       }
     } catch (error) {
       toast.error(`Test error: ${error.message}`);
@@ -288,7 +473,7 @@ const SubscriptionPage = () => {
         'No subscription commitment'
       ],
       popular: false,
-  current: subscriptionType === 'pay_per_song' || (subscription && subscription.subscription_type === 'pay_per_song')
+      current: false // Always allow pay-per-song users to buy more credits
     },
     {
       id: 'yearly',
@@ -346,13 +531,15 @@ const SubscriptionPage = () => {
                     Current Plan: {subscriptionType === 'yearly' ? 'Yearly Premium' : 'Pay Per Song'}
                   </h3>
                   <p className="text-purple-700">
-                    {subscriptionType === 'yearly' && 'Unlimited uploads until Dec 2026'}
-                    {subscriptionType === 'pay_per_song' && `${songCredits} upload credits remaining`}
+                    {subscriptionType === 'yearly' && subscription?.end_date && `Unlimited uploads until ${new Date(subscription.end_date).toLocaleDateString()}`}
+                    {subscriptionType === 'pay_per_song' && `${songCredits} upload credits remaining (no expiry)`}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm text-purple-600">Next billing: Dec 15, 2025</p>
+                {subscriptionType === 'yearly' && subscription?.end_date && (
+                  <p className="text-sm text-purple-600">Expires: {new Date(subscription.end_date).toLocaleDateString()}</p>
+                )}
                 <button className="text-purple-600 hover:text-purple-800 text-sm font-medium">
                   Manage billing
                 </button>
@@ -447,7 +634,7 @@ const SubscriptionPage = () => {
                 ) : (
                   <>
                     <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
-                    {plan.id === 'yearly' ? 'Go Premium' : 'Start Uploading'}
+                    {plan.id === 'yearly' ? 'Go Premium' : (songCredits > 0 ? 'Buy More Credits' : 'Start Uploading')}
                   </>
                 )}
               </button>
@@ -476,6 +663,58 @@ const SubscriptionPage = () => {
               >
                 Buy More Credits
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Processing Status */}
+        {(loadingPayPerSong || loadingYearly) && (
+          <div className="mt-8 text-center">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-md mx-auto">
+              <div className="flex items-center justify-center mb-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-2"></div>
+                <h3 className="font-semibold text-blue-900">
+                  {!paymentInitiated ? 'Waiting for Payment...' : 'Payment Processing...'}
+                </h3>
+              </div>
+              <p className="text-blue-700 text-sm mb-4">
+                {!paymentInitiated 
+                  ? 'Please complete your payment in the Paystack window.'
+                  : paymentInitiated 
+                    ? 'Verifying your payment. Auto-verification will start shortly.'
+                    : 'This usually takes 5-10 seconds.'
+                }
+              </p>
+              
+              {paymentInitiated && (
+                <div className="mb-4 p-2 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-800 text-sm font-medium">
+                    ✅ Payment detected! Auto-verification is active.
+                  </p>
+                </div>
+              )}
+              
+              {showEmergencyActions && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-yellow-800 text-sm mb-3 font-medium">
+                    🚨 Taking longer than expected? Try these options:
+                  </p>
+                  <div className="space-y-2">
+                    <button
+                      onClick={autoVerifyPendingPayments}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      🔍 Check & Verify Pending Payments
+                    </button>
+                    <button
+                      onClick={forceVerifyPayment}
+                      className="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      🔄 Refresh Account Status
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

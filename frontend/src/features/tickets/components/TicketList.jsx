@@ -2,11 +2,9 @@
 import TicketCard from "./TicketCard";
 
 const TicketList = ({ status, tickets, onOpenTicket }) => {
-  const filtered = tickets.filter((ticket) => ticket.status === status);
-
   return (
     <div className="space-y-4">
-      {filtered.length === 0 ? (
+      {tickets.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,13 +15,13 @@ const TicketList = ({ status, tickets, onOpenTicket }) => {
           <p className="text-gray-600 text-sm max-w-sm mx-auto">
             {status === 'open' 
               ? "You don't have any open support tickets. Create a new ticket if you need help."
-              : "No resolved tickets to display."
+              : `No ${status} tickets to display.`
             }
           </p>
         </div>
       ) : (
         <div className="grid gap-4">
-          {filtered.map((ticket) => (
+          {tickets.map((ticket) => (
             <TicketCard
               key={ticket.id}
               ticket={ticket}

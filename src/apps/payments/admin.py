@@ -1,13 +1,48 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
+from django.utils import timezone
 from .models import PaymentMethod, Subscription, Transaction
 
 
 @admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ['user', 'payment_type', 'is_default', 'is_active', 'created_at']
-    list_filter = ['payment_type', 'is_default', 'is_active', 'created_at']
-    search_fields = ['user__email', 'user__first_name', 'user__last_name', 'card_brand']
+    """Enhanced Payment method administration"""
+    
+    list_display = [
+        'user', 'payment_type', 'get_payment_info', 'is_default', 
+        'is_active', 'created_at'
+    ]
+    list_filter = ['payment_type', 'is_default', 'is_active', 'card_brand']
+    search_fields = ['user__email', 'user__first_name', 'user__last_name', 'bank_name']
+    ordering = ['-created_at']
     readonly_fields = ['id', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('User & Type', {
+            'fields': ('user', 'payment_type', 'is_default', 'is_active')
+        }),
+        ('Card Details', {
+            'fields': ('card_last_four', 'card_brand', 'card_exp_month', 'card_exp_year'),
+            'classes': ('collapse',)
+        }),
+        ('Bank Details', {
+            'fields': ('bank_name', 'account_number'),
+            'classes': ('collapse',)
+        }),
+        ('External Integration', {
+            'fields': ('paystack_auth_code', 'paystack_customer_code'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_payment_info(self, obj):
+        if obj.payment_type == 'card' and obj.card_last_four:
+            return f"{obj.card_brand} ****{obj.card_last_four}"
+        elif obj.payment_type == 'bank_transfer' and obj.bank_name:
+            return f"{obj.bank_name}"
+        return obj.get_payment_type_display()
+    get_payment_info.short_description = 'Payment Info'
     
     fieldsets = (
         ('Basic Info', {

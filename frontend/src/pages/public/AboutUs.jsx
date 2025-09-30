@@ -167,7 +167,7 @@ const AboutUs = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Join Our Community?</h2>
           <p className="text-xl text-gray-600 mb-8">Start your music distribution journey with us today</p>
           <Link 
-            to="/sign-up" 
+            to="/register" 
             className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 text-lg font-medium"
           >
             Get Started Now

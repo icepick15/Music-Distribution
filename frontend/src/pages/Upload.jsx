@@ -285,7 +285,7 @@ const Upload = () => {
 
   const FileUploadArea = ({ fileType, accept, title, description, icon: Icon }) => (
     <div
-      className={`relative border-2 border-dashed rounded-lg p-6 text-center hover:border-blue-400 transition-colors ${
+      className={`relative border-2 border-dashed rounded-lg p-4 sm:p-6 text-center hover:border-blue-400 transition-colors ${
         dragActive[fileType] 
           ? 'border-blue-400 bg-blue-50' 
           : files[fileType] 
@@ -306,13 +306,13 @@ const Upload = () => {
       
       <div className="space-y-2">
         {files[fileType] ? (
-          <CheckCircleIcon className="mx-auto h-12 w-12 text-green-500" />
+          <CheckCircleIcon className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-green-500" />
         ) : (
-          <Icon className={`mx-auto h-12 w-12 ${errors[fileType] ? 'text-red-400' : 'text-gray-400'}`} />
+          <Icon className={`mx-auto h-8 w-8 sm:h-12 sm:w-12 ${errors[fileType] ? 'text-red-400' : 'text-gray-400'}`} />
         )}
         
         <div>
-          <p className={`text-sm font-medium ${files[fileType] ? 'text-green-700' : errors[fileType] ? 'text-red-700' : 'text-gray-900'}`}>
+          <p className={`text-xs sm:text-sm font-medium ${files[fileType] ? 'text-green-700' : errors[fileType] ? 'text-red-700' : 'text-gray-900'}`}>
             {files[fileType] ? files[fileType].name : title}
           </p>
           <p className="text-xs text-gray-500">{description}</p>
@@ -326,41 +326,41 @@ const Upload = () => {
       </div>
       
       {errors[fileType] && (
-        <p className="mt-2 text-sm text-red-600">{errors[fileType]}</p>
+        <p className="mt-2 text-xs sm:text-sm text-red-600">{errors[fileType]}</p>
       )}
     </div>
   );
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload New Music</h1>
-          <p className="text-gray-600">Upload your track and get it distributed to major streaming platforms.</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Upload New Music</h1>
+          <p className="text-sm sm:text-base text-gray-600">Upload your track and get it distributed to major streaming platforms.</p>
         </div>
 
         {/* Subscription Status */}
-        <div className="mb-6 p-4 rounded-lg border bg-blue-50 border-blue-200">
-          <div className="flex items-center justify-between">
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg border bg-blue-50 border-blue-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
             <div>
               <h3 className="text-sm font-medium text-blue-900">Subscription Status</h3>
               {subscription ? (
-                <p className="text-sm text-blue-700">
+                <p className="text-xs sm:text-sm text-blue-700">
                   {subscription.subscription_type === 'yearly' 
                     ? `Yearly subscription - Unlimited uploads until ${new Date(subscription.end_date).toLocaleDateString()}`
                     : `Pay per song - ${remainingUploads} upload credits remaining`
                   }
                 </p>
               ) : (
-                <p className="text-sm text-blue-700">No active subscription</p>
+                <p className="text-xs sm:text-sm text-blue-700">No active subscription</p>
               )}
             </div>
             {!canUpload() && (
               <button
                 type="button"
                 onClick={() => navigate('/dashboard/subscription')}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+                className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
               >
                 Upgrade Plan
               </button>
@@ -369,12 +369,12 @@ const Upload = () => {
         </div>
 
         {/* Upload Form */}
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
           {/* File Uploads */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Files</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Audio File *
@@ -404,11 +404,11 @@ const Upload = () => {
           </div>
 
           {/* Basic Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="lg:col-span-2">
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                   Track Title *
                 </label>
@@ -418,7 +418,7 @@ const Upload = () => {
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base ${
                     errors.title ? 'border-red-400' : 'border-gray-300'
                   }`}
                   placeholder="Enter your track title"

@@ -22,6 +22,7 @@ urlpatterns = [
     # Payment Processing
     path('initialize/', views.PaymentInitiationView.as_view(), name='payment_initialize'),
     path('verify/', views.PaymentVerificationView.as_view(), name='payment_verify'),
+    path('verify-pending/', views.AutoVerifyPendingPaymentsView.as_view(), name='auto_verify_pending'),
     path('callback/', views.PaymentCallbackView.as_view(), name='payment_callback'),
     path('charge/', views.ChargeAuthorizationView.as_view(), name='charge_authorization'),
     

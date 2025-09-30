@@ -9,12 +9,12 @@ import {
   CalendarIcon,
   CurrencyDollarIcon,
   CogIcon,
-  UserIcon,
   PlusIcon,
   LockClosedIcon,
   CreditCardIcon,
   BellIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 const SidebarButton = ({ to, icon: Icon, children, status, badge, disabled = false, onClick }) => {
@@ -129,10 +129,10 @@ const EnhancedSidebar = () => {
     <div className="w-64 bg-white h-full border-r border-gray-200 overflow-y-auto">
       <div className="p-6">
         <div className="mb-8">
-          <h1 className="text-xl font-bold text-gray-900">Music Hub</h1>
+          <h1 className="text-xl font-bold text-gray-900">Welcome, {user?.firstName || user?.first_name || 'User'}!</h1>
           <p className="text-sm text-gray-600">
             {subscriptionType === 'yearly' && 'Premium Account'}
-            {subscriptionType === 'pay_per_song' && `${songCredits} credits`}
+            {subscriptionType === 'pay_per_song' && `${songCredits} credits remaining`}
             {subscriptionType === 'free' && 'Free Account'}
           </p>
         </div>
@@ -154,11 +154,13 @@ const EnhancedSidebar = () => {
             icon={ArrowUpTrayIcon}
             status={!canUpload() ? 'locked' : undefined}
             badge={
-              (subscriptionType === 'pay_per_song' && songCredits > 0) 
-                ? { type: 'credits', text: `${songCredits} left` }
-                : subscriptionType === 'free' 
-                ? { type: 'pro', text: 'Get plan' }
-                : (subscriptionType === 'yearly' ? { type: 'pro', text: 'Premium' } : undefined)
+              canUpload()
+                ? subscriptionType === 'yearly'
+                  ? { type: 'pro', text: 'Unlimited' }
+                  : subscriptionType === 'pay_per_song'
+                  ? { type: 'credits', text: `${remainingUploads || songCredits} left` }
+                  : undefined
+                : { type: 'pro', text: 'Get Plan' }
             }
           >
             Upload Music
@@ -206,21 +208,16 @@ const EnhancedSidebar = () => {
 
           <hr className="my-4 border-gray-200" />
 
-          {/* Account Management */}
-          <SidebarButton to="/dashboard/profile" icon={UserIcon}>
-            Profile
-          </SidebarButton>
-
           {/* Subscription Management */}
           <SidebarButton 
             to="/dashboard/subscription" 
             icon={CreditCardIcon}
             badge={
-              subscriptionType === 'free' 
-                ? { type: 'pro', text: 'Upgrade' }
-                : subscriptionType === 'pay_per_song'
-                ? { type: 'credits', text: 'Buy more' }
-                : { type: 'pro', text: 'Manage' }
+              subscriptionType === 'yearly'
+                ? { type: 'pro', text: 'Premium' }
+                : subscriptionType === 'pay_per_song' && (songCredits > 0 || remainingUploads > 0)
+                ? { type: 'credits', text: 'Active' }
+                : { type: 'pro', text: 'Upgrade' }
             }
           >
             Subscription
@@ -238,21 +235,51 @@ const EnhancedSidebar = () => {
             <span className="font-medium text-purple-900">
               {subscriptionType === 'yearly' && 'Premium Plan'}
               {subscriptionType === 'pay_per_song' && 'Pay Per Song'}
-              {subscriptionType === 'free' && 'Free Plan'}
+              {subscriptionType === 'free' && 'Getting Started'}
             </span>
           </div>
           
           {subscriptionType === 'free' && (
             <div>
               <p className="text-sm text-purple-700 mb-3">
-                Start uploading your music with pay-per-song or upgrade to yearly for unlimited uploads!
+                Start uploading your music! Choose pay-per-song for flexibility or yearly for unlimited uploads.
               </p>
               <SidebarButton 
-                to="/pricing" 
+                to="/dashboard/subscription" 
                 icon={ArrowUpTrayIcon}
                 badge={{ type: 'new', text: 'Start' }}
               >
                 Choose Plan
+              </SidebarButton>
+            </div>
+          )}
+          
+          {subscriptionType === 'pay_per_song' && (
+            <div>
+              <p className="text-sm text-purple-700 mb-3">
+                You have {remainingUploads} upload credits remaining. Purchase more credits or upgrade to yearly for unlimited uploads!
+              </p>
+              <SidebarButton 
+                to="/dashboard/subscription" 
+                icon={CurrencyDollarIcon}
+                badge={{ type: 'info', text: `${remainingUploads} left` }}
+              >
+                Buy Credits
+              </SidebarButton>
+            </div>
+          )}
+          
+          {subscriptionType === 'yearly' && subscription?.end_date && (
+            <div>
+              <p className="text-sm text-purple-700 mb-3">
+                Unlimited uploads until {new Date(subscription.end_date).toLocaleDateString()}. Keep creating amazing music!
+              </p>
+              <SidebarButton 
+                to="/dashboard/subscription" 
+                icon={CheckCircleIcon}
+                badge={{ type: 'success', text: 'Active' }}
+              >
+                Manage Plan
               </SidebarButton>
             </div>
           )}

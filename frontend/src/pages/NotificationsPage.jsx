@@ -25,7 +25,7 @@ const NotificationsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showPreferences, setShowPreferences] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8100';
 
   useEffect(() => {
     fetchNotifications();

@@ -81,8 +81,8 @@ const NotFound = () => {
             <div className="p-4 bg-white/5 rounded-xl border border-white/10">
               <h3 className="font-semibold text-white mb-2">Account</h3>
               <ul className="space-y-1">
-                <li><button onClick={() => navigate("/sign-in")} className="hover:text-white transition-colors">Sign In</button></li>
-                <li><button onClick={() => navigate("/sign-up")} className="hover:text-white transition-colors">Sign Up</button></li>
+                <li><button onClick={() => navigate("/login")} className="hover:text-white transition-colors">Sign In</button></li>
+                <li><button onClick={() => navigate("/register")} className="hover:text-white transition-colors">Sign Up</button></li>
                 <li><button onClick={() => navigate("/dashboard")} className="hover:text-white transition-colors">Dashboard</button></li>
               </ul>
             </div>

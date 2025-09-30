@@ -26,4 +26,4 @@ def debug_task(self):
 @app.task(bind=True)
 def handle_task_failure(self, exc, task_id, args, kwargs, traceback):
     logger.error(f'Task {task_id} failed: {exc}')
-    # You can add custom failure handling here (send notifications, etc.)
+    

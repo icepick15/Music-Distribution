@@ -6,6 +6,7 @@ from typing import Dict, Optional, Tuple
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from pypaystack2 import PaystackClient
 from .models import PaymentMethod, Subscription, Transaction
 
@@ -146,53 +147,62 @@ class PaymentService:
         try:
             logger.info(f"Processing payment success for reference: {reference}")
             
-            # Get transaction
-            transaction = Transaction.objects.get(paystack_reference=reference)
-            logger.info(f"Found transaction: {transaction.id}, status: {transaction.status}")
+            # Use atomic transaction to prevent database locks and race conditions
+            with transaction.atomic():
+                # Get transaction with SELECT FOR UPDATE to prevent race conditions
+                try:
+                    transaction_obj = Transaction.objects.select_for_update().get(paystack_reference=reference)
+                except Transaction.DoesNotExist:
+                    logger.error(f"Transaction not found for reference: {reference}")
+                    return False, {'error': 'Transaction not found'}
+                
+                logger.info(f"Found transaction: {transaction_obj.id}, status: {transaction_obj.status}")
+                
+                # Skip if already processed to prevent double processing
+                if transaction_obj.status == 'completed':
+                    logger.info(f"Transaction {transaction_obj.id} already completed, skipping")
+                    return True, {'message': 'Payment already processed'}
+                
+                # Verify payment with Paystack
+                success, payment_data = self.verify_payment(reference)
+                logger.info(f"Paystack verification: success={success}, status={payment_data.get('status') if success else 'failed'}")
+                
+                if not success:
+                    logger.error(f"Paystack verification failed: {payment_data}")
+                    return False, payment_data
+                
+                # Check if payment was successful
+                if payment_data['status'] != 'success':
+                    logger.warning(f"Payment status is not success: {payment_data['status']}")
+                    transaction_obj.mark_as_failed('Payment not successful')
+                    return False, {'error': 'Payment was not successful'}
+                
+                # Update transaction
+                transaction_obj.gateway_response = payment_data
+                transaction_obj.mark_as_completed()
+                logger.info(f"Transaction {transaction_obj.id} marked as completed")
+                
+                # Process based on transaction type
+                if transaction_obj.transaction_type == 'subscription':
+                    success, result = self._process_subscription_payment(transaction_obj, payment_data)
+                    logger.info(f"Subscription processing: success={success}")
+                elif transaction_obj.transaction_type == 'credit_purchase':
+                    success, result = self._process_credit_purchase(transaction_obj, payment_data)
+                    logger.info(f"Credit purchase processing: success={success}")
+                elif transaction_obj.transaction_type == 'song_upload':
+                    success, result = self._process_song_upload_payment(transaction_obj, payment_data)
+                    logger.info(f"Song upload processing: success={success}")
+                else:
+                    success, result = True, {'message': 'Payment processed successfully'}
+                
+                # Save payment method if authorization code is provided
+                auth_data = payment_data.get('authorization', {})
+                if auth_data.get('reusable') and auth_data.get('authorization_code'):
+                    self._save_payment_method(transaction_obj.user, auth_data)
+                
+                logger.info(f"Payment processing completed successfully for {reference}")
+                return success, result
             
-            # Verify payment with Paystack
-            success, payment_data = self.verify_payment(reference)
-            logger.info(f"Paystack verification: success={success}, status={payment_data.get('status') if success else 'failed'}")
-            
-            if not success:
-                logger.error(f"Paystack verification failed: {payment_data}")
-                return False, payment_data
-            
-            # Check if payment was successful
-            if payment_data['status'] != 'success':
-                logger.warning(f"Payment status is not success: {payment_data['status']}")
-                transaction.mark_as_failed('Payment not successful')
-                return False, {'error': 'Payment was not successful'}
-            
-            # Update transaction
-            transaction.gateway_response = payment_data
-            transaction.mark_as_completed()
-            logger.info(f"Transaction {transaction.id} marked as completed")
-            
-            # Process based on transaction type
-            if transaction.transaction_type == 'subscription':
-                success, result = self._process_subscription_payment(transaction, payment_data)
-                logger.info(f"Subscription processing: success={success}")
-            elif transaction.transaction_type == 'credit_purchase':
-                success, result = self._process_credit_purchase(transaction, payment_data)
-                logger.info(f"Credit purchase processing: success={success}")
-            elif transaction.transaction_type == 'song_upload':
-                success, result = self._process_song_upload_payment(transaction, payment_data)
-                logger.info(f"Song upload processing: success={success}")
-            else:
-                success, result = True, {'message': 'Payment processed successfully'}
-            
-            # Save payment method if authorization code is provided
-            auth_data = payment_data.get('authorization', {})
-            if auth_data.get('reusable') and auth_data.get('authorization_code'):
-                self._save_payment_method(transaction.user, auth_data)
-            
-            logger.info(f"Payment processing completed successfully for {reference}")
-            return success, result
-            
-        except Transaction.DoesNotExist:
-            logger.error(f"Transaction not found for reference: {reference}")
-            return False, {'error': 'Transaction not found'}
         except Exception as e:
             logger.error(f"Error handling payment success: {str(e)}")
             import traceback
@@ -218,25 +228,44 @@ class PaymentService:
                 # For pay-per-song, calculate credits based on amount
                 song_credits = int(transaction.amount / 5000)  # ₦5,000 per song
             
-            # Cancel existing active subscriptions
-            Subscription.objects.filter(
-                user=transaction.user,
-                status='active'
-            ).update(status='canceled')
+            # Cancel existing active subscriptions ONLY if it's a different type
+            # For pay-per-song, we want to add credits to existing subscription
+            if subscription_type != 'pay_per_song':
+                Subscription.objects.filter(
+                    user=transaction.user,
+                    status='active'
+                ).update(status='canceled')
             
-            # Create new subscription
-            subscription = Subscription.objects.create(
-                user=transaction.user,
-                subscription_type=subscription_type,
-                amount=transaction.amount,
-                song_credits=song_credits,
-                start_date=start_date,
-                end_date=end_date,
-                payment_method=transaction.payment_method
-            )
+            # For pay-per-song, check if user already has an active subscription
+            existing_pps = None
+            if subscription_type == 'pay_per_song':
+                existing_pps = Subscription.objects.filter(
+                    user=transaction.user,
+                    subscription_type='pay_per_song',
+                    status='active'
+                ).first()
             
-            transaction.subscription = subscription
-            transaction.save()
+            if existing_pps:
+                # Add credits to existing subscription
+                existing_pps.song_credits += song_credits
+                existing_pps.save()
+                subscription = existing_pps
+                transaction.subscription = subscription
+                transaction.save()
+            else:
+                # Create new subscription
+                subscription = Subscription.objects.create(
+                    user=transaction.user,
+                    subscription_type=subscription_type,
+                    amount=transaction.amount,
+                    song_credits=song_credits,
+                    start_date=start_date,
+                    end_date=end_date,
+                    payment_method=transaction.payment_method
+                )
+                
+                transaction.subscription = subscription
+                transaction.save()
 
             # Update user subscription info
             # Map billing types to subscription tiers

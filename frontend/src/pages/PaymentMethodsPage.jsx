@@ -271,7 +271,7 @@ const PaymentMethodsPage = () => {
                   <p className="text-purple-700">Unlimited uploads until {new Date(currentSubscription.end_date).toLocaleDateString()}</p>
                 )}
                 {currentSubscription.subscription_type === 'pay_per_song' && (
-                  <p className="text-purple-700">{currentSubscription.remaining_credits} credits remaining</p>
+                  <p className="text-purple-700">{currentSubscription.remaining_credits} credits remaining (no expiry)</p>
                 )}
               </div>
               <div className="text-right">

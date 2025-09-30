@@ -1,11 +1,10 @@
-# Create comprehensive .gitignore
-@"
 # Environment files
 .env
 .env.local
 .env.production
 .env.staging
 *.env
+!.env.example
 
 # Dependencies
 node_modules/
@@ -63,4 +62,3 @@ dist/
 # Temporary files
 tmp/
 temp/
-"@ | Out-File -FilePath ".gitignore" -Encoding UTF8

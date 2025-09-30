@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import DashboardLayout from '../components/DashboardLayout';
 import { 
   UserIcon,
@@ -17,6 +18,7 @@ import {
 
 const SettingsPage = () => {
   const { user, apiCall } = useAuth();
+  const { subscription } = useSubscription();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -518,9 +520,20 @@ const SettingsPage = () => {
                         <div>
                           <h3 className="font-medium text-gray-900">Current Plan</h3>
                           <p className="text-sm text-gray-500">
-                            {user?.publicMetadata?.subscriptionType === 'yearly' ? 'Yearly Premium' :
-                             user?.publicMetadata?.subscriptionType === 'pay_per_song' ? 'Pay Per Song' : 'Free Plan'}
+                            {subscription?.subscription_type === 'yearly' ? 'Yearly Premium' :
+                             subscription?.subscription_type === 'pay_per_song' ? 'Pay Per Song' : 
+                             subscription?.subscription_type === 'free' ? 'Free Plan' : 'Getting Started'}
                           </p>
+                          {subscription?.subscription_type === 'yearly' && subscription?.end_date && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Expires: {new Date(subscription.end_date).toLocaleDateString()}
+                            </p>
+                          )}
+                          {subscription?.subscription_type === 'pay_per_song' && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              {subscription?.remaining_credits || 0} credits remaining
+                            </p>
+                          )}
                         </div>
                         <button
                           onClick={() => window.location.href = '/dashboard/subscription'}

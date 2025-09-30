@@ -63,6 +63,98 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         )
         return Response({'marked_as_read': updated})
 
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    def broadcast(self, request):
+        """Broadcast notification to all users (Admin only)"""
+        from .notification_utils import create_admin_broadcast
+        
+        title = request.data.get('title')
+        message = request.data.get('message')
+        priority = request.data.get('priority', 'normal')
+        
+        if not title or not message:
+            return Response(
+                {'error': 'Title and message are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        notifications = create_admin_broadcast(title, message, priority, request.user)
+        
+        return Response({
+            'message': f'Broadcast sent to {len(notifications)} users',
+            'notifications_created': len(notifications)
+        })
+
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    def send_to_user(self, request):
+        """Send notification to specific user (Admin only)"""
+        from django.contrib.auth import get_user_model
+        from .notification_utils import create_ticket_notification
+        from .models import Ticket
+        
+        User = get_user_model()
+        
+        user_id = request.data.get('user_id')
+        title = request.data.get('title')
+        message = request.data.get('message')
+        priority = request.data.get('priority', 'normal')
+        
+        if not all([user_id, title, message]):
+            return Response(
+                {'error': 'user_id, title, and message are required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Create a dummy ticket for notification context
+        # In a real implementation, you might want a separate function for admin messages
+        notification = create_ticket_notification(
+            ticket=None,  # No specific ticket
+            notification_type_name='admin_message',
+            title=title,
+            message=message,
+            recipient=user
+        )
+        
+        if notification:
+            return Response({'message': 'Notification sent successfully'})
+        else:
+            return Response(
+                {'error': 'Failed to send notification'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
+    def stats(self, request):
+        """Get notification statistics (Admin only)"""
+        from django.db.models import Count, Q
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Get date ranges
+        now = timezone.now()
+        week_ago = now - timedelta(days=7)
+        month_ago = now - timedelta(days=30)
+        
+        stats = {
+            'total_notifications': Notification.objects.count(),
+            'unread_count': Notification.objects.filter(status__in=['pending', 'sent']).count(),
+            'read_count': Notification.objects.filter(status='read').count(),
+            'week_count': Notification.objects.filter(created_at__gte=week_ago).count(),
+            'month_count': Notification.objects.filter(created_at__gte=month_ago).count(),
+            'by_type': Notification.objects.values('notification_type__name').annotate(count=Count('id')),
+            'by_priority': Notification.objects.values('priority').annotate(count=Count('id')),
+        }
+        
+        return Response(stats)
+
 
 class NotificationTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """
