@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, X, Check, CheckCheck, Settings, Trash2 } from 'lucide-react';
+import { Bell, X, Check, CheckCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../context/NotificationContext';
-import notificationAPI from '../../services/notificationService';
+import { notificationAPI } from '../../services/notificationService';
 import toast from 'react-hot-toast';
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
   const { notifications, unreadCount, dispatch } = useNotifications();
 
   // Close dropdown when clicking outside
@@ -66,20 +68,6 @@ export default function NotificationDropdown() {
     } catch (error) {
       console.error('Failed to mark all as read:', error);
       toast.error('Failed to mark all notifications as read');
-    }
-  };
-
-  const handleDeleteNotification = async (notificationId) => {
-    try {
-      await notificationAPI.deleteNotification(notificationId);
-      dispatch({
-        type: 'DELETE_NOTIFICATION',
-        payload: { id: notificationId }
-      });
-      toast.success('Notification deleted');
-    } catch (error) {
-      console.error('Failed to delete notification:', error);
-      toast.error('Failed to delete notification');
     }
   };
 
@@ -186,7 +174,6 @@ export default function NotificationDropdown() {
                   key={notification.id}
                   notification={notification}
                   onMarkAsRead={handleMarkAsRead}
-                  onDelete={handleDeleteNotification}
                   formatTimeAgo={formatTimeAgo}
                   getNotificationIcon={getNotificationIcon}
                   getPriorityColor={getPriorityColor}
@@ -200,8 +187,7 @@ export default function NotificationDropdown() {
             <button
               onClick={() => {
                 setIsOpen(false);
-                // Navigate to notifications page if exists
-                // window.location.href = '/dashboard/notifications';
+                navigate('/dashboard/notifications');
               }}
               className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
             >
@@ -218,7 +204,6 @@ export default function NotificationDropdown() {
 function NotificationItem({ 
   notification, 
   onMarkAsRead, 
-  onDelete, 
   formatTimeAgo, 
   getNotificationIcon, 
   getPriorityColor 
@@ -278,13 +263,6 @@ function NotificationItem({
               <Check className="h-4 w-4" />
             </button>
           )}
-          <button
-            onClick={() => onDelete(notification.id)}
-            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded"
-            title="Delete notification"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
         </div>
       </div>
     </div>

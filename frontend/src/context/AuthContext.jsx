@@ -317,6 +317,7 @@ export const AuthProvider = ({ children }) => {
     isLoaded,
     isSignedIn,
     loading,
+    token: localStorage.getItem('authToken'), // Add token to context
     signIn,
     signUp,
     signOut,

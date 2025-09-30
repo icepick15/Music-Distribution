@@ -13,7 +13,8 @@ import {
   CurrencyDollarIcon,
   ArrowUpTrayIcon,
   HomeIcon,
-  LifebuoyIcon
+  LifebuoyIcon,
+  BellIcon
 } from "@heroicons/react/24/outline";
 
 const Navbar = () => {
@@ -309,6 +310,15 @@ const Navbar = () => {
                       <span>{link.name}</span>
                     </Link>
                   ))}
+                  
+                  {/* Mobile Notifications Link */}
+                  <Link
+                    to="/dashboard/notifications"
+                    className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors duration-150"
+                  >
+                    <BellIcon className="w-5 h-5" />
+                    <span>Notifications</span>
+                  </Link>
                 </div>
 
                 {/* Upload button */}

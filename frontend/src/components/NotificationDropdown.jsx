@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, X, Check, CheckCheck, Settings, Trash2 } from 'lucide-react';
+import { Bell, X, Check, CheckCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../context/NotificationContext';
 import notificationAPI from '../services/notificationService';
@@ -71,20 +71,6 @@ export default function NotificationDropdown() {
     }
   };
 
-  const handleDeleteNotification = async (notificationId) => {
-    try {
-      await notificationAPI.deleteNotification(notificationId);
-      dispatch({
-        type: 'DELETE_NOTIFICATION',
-        payload: { id: notificationId }
-      });
-      toast.success('Notification deleted');
-    } catch (error) {
-      console.error('Failed to delete notification:', error);
-      toast.error('Failed to delete notification');
-    }
-  };
-
   const formatTimeAgo = (timestamp) => {
     const now = new Date();
     const time = new Date(timestamp);
@@ -145,19 +131,20 @@ export default function NotificationDropdown() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-screen-sm bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-lg border border-gray-200 z-50">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
             <div className="flex items-center space-x-2">
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 flex items-center"
                   title="Mark all as read"
                 >
                   <CheckCheck className="h-4 w-4 mr-1" />
-                  Mark all read
+                  <span className="hidden sm:inline">Mark all read</span>
+                  <span className="sm:hidden">Mark all</span>
                 </button>
               )}
               <button
@@ -170,17 +157,17 @@ export default function NotificationDropdown() {
           </div>
 
           {/* Notifications List */}
-          <div className="max-h-72 sm:max-h-96 overflow-y-auto">
+          <div className="max-h-60 sm:max-h-80 md:max-h-96 overflow-y-auto">
             {loading ? (
               <div className="p-4 text-center text-gray-500">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2">Loading notifications...</p>
+                <p className="mt-2 text-sm">Loading notifications...</p>
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <Bell className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-medium mb-1">No notifications yet</p>
-                <p className="text-sm">We'll notify you when something happens</p>
+              <div className="p-6 sm:p-8 text-center text-gray-500">
+                <Bell className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 opacity-30" />
+                <p className="text-base sm:text-lg font-medium mb-1">No notifications yet</p>
+                <p className="text-xs sm:text-sm">We'll notify you when something happens</p>
               </div>
             ) : (
               notifications.map((notification) => (
@@ -188,7 +175,6 @@ export default function NotificationDropdown() {
                   key={notification.id}
                   notification={notification}
                   onMarkAsRead={handleMarkAsRead}
-                  onDelete={handleDeleteNotification}
                   formatTimeAgo={formatTimeAgo}
                   getNotificationIcon={getNotificationIcon}
                   getPriorityColor={getPriorityColor}
@@ -219,12 +205,11 @@ export default function NotificationDropdown() {
 function NotificationItem({ 
   notification, 
   onMarkAsRead, 
-  onDelete, 
   formatTimeAgo, 
   getNotificationIcon, 
   getPriorityColor 
 }) {
-  const isUnread = notification.status !== 'read';
+  const isUnread = !notification.read_at && notification.status !== 'read';
 
   return (
     <div
@@ -233,9 +218,9 @@ function NotificationItem({
       } border-l-4 ${getPriorityColor(notification.priority)}`}
     >
       <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 pr-2">
           <div className="flex items-center mb-2">
-            <span className="text-lg mr-2">
+            <span className="text-base sm:text-lg mr-2 flex-shrink-0">
               {getNotificationIcon(notification.notification_type?.category)}
             </span>
             <h4 className={`text-sm font-medium ${
@@ -248,7 +233,7 @@ function NotificationItem({
             )}
           </div>
           
-          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+          <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2">
             {notification.message}
           </p>
           
@@ -268,25 +253,18 @@ function NotificationItem({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-1 ml-2">
-          {isUnread && (
+        {/* Action Button - Only Mark as Read */}
+        {isUnread && (
+          <div className="flex-shrink-0 ml-2">
             <button
               onClick={() => onMarkAsRead(notification.id)}
-              className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded"
+              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded-full transition-colors"
               title="Mark as read"
             >
               <Check className="h-4 w-4" />
             </button>
-          )}
-          <button
-            onClick={() => onDelete(notification.id)}
-            className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded"
-            title="Delete notification"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

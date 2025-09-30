@@ -191,7 +191,9 @@ const AppRoutes = () => {
         } />
         <Route path="/dashboard/notifications" element={
           <ProtectedRoute requireAuth={true}>
-            <NotificationsPage />
+            <DashboardLayout>
+              <NotificationsPage />
+            </DashboardLayout>
           </ProtectedRoute>
         } />
         <Route path="/dashboard/music/release" element={

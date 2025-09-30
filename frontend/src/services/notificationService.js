@@ -1,6 +1,6 @@
 import axiosInstance from '../lib/axios';
 
-const NOTIFICATION_API_BASE = '/api/notifications';
+const NOTIFICATION_API_BASE = '/api/realtime';
 
 export const notificationAPI = {
   // Get all notifications
@@ -32,12 +32,6 @@ export const notificationAPI = {
   // Mark all notifications as read
   markAllAsRead: async () => {
     const response = await axiosInstance.post(`${NOTIFICATION_API_BASE}/notifications/mark_all_as_read/`);
-    return response.data;
-  },
-
-  // Delete notification
-  deleteNotification: async (notificationId) => {
-    const response = await axiosInstance.delete(`${NOTIFICATION_API_BASE}/notifications/${notificationId}/`);
     return response.data;
   },
 
