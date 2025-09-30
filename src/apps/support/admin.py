@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import Ticket, TicketResponse, TicketAttachment
+from .models import Ticket, TicketResponse, TicketAttachment, ContactMessage
 
 
 class TicketResponseInline(admin.TabularInline):
@@ -159,3 +159,131 @@ class TicketAttachmentAdmin(admin.ModelAdmin):
             size /= 1024.0
         return f"{size:.1f} TB"
     file_size_display.short_description = 'File Size'
+
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = [
+        'name', 'email', 'subject', 'status_badge', 'priority_badge', 
+        'category_display', 'created_at', 'response_time_display'
+    ]
+    list_filter = [
+        'status', 'priority', 'category', 'created_at', 'user'
+    ]
+    search_fields = [
+        'name', 'email', 'subject', 'message', 'user__username', 'user__email'
+    ]
+    readonly_fields = [
+        'id', 'created_at', 'updated_at', 'read_at', 'responded_at', 
+        'response_time_hours', 'ip_address', 'user_agent', 'referrer'
+    ]
+    
+    fieldsets = (
+        ('Contact Information', {
+            'fields': ('name', 'email', 'user')
+        }),
+        ('Message Details', {
+            'fields': ('subject', 'category', 'message', 'status', 'priority')
+        }),
+        ('Management', {
+            'fields': ('related_ticket',)
+        }),
+        ('Metadata', {
+            'fields': ('ip_address', 'user_agent', 'referrer'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at', 'read_at', 'responded_at', 'response_time_hours'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['mark_as_read', 'mark_as_responded', 'mark_as_resolved', 'convert_to_tickets']
+    
+    def status_badge(self, obj):
+        """Display status with color coding"""
+        colors = {
+            'new': '#dc2626',      # red
+            'read': '#2563eb',     # blue
+            'in_progress': '#d97706',  # yellow
+            'responded': '#059669',    # green
+            'resolved': '#6b7280'      # gray
+        }
+        color = colors.get(obj.status, '#6b7280')
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color, obj.get_status_display()
+        )
+    status_badge.short_description = 'Status'
+    
+    def priority_badge(self, obj):
+        """Display priority with color coding"""
+        colors = {
+            'low': '#6b7280',      # gray
+            'medium': '#2563eb',   # blue
+            'high': '#d97706',     # yellow
+            'urgent': '#dc2626'    # red
+        }
+        color = colors.get(obj.priority, '#6b7280')
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color, obj.get_priority_display()
+        )
+    priority_badge.short_description = 'Priority'
+    
+    def category_display(self, obj):
+        """Display category with better formatting"""
+        return obj.get_category_display()
+    category_display.short_description = 'Category'
+    
+    def response_time_display(self, obj):
+        """Display response time in human readable format"""
+        if obj.response_time_hours:
+            hours = obj.response_time_hours
+            if hours < 1:
+                return f"{int(hours * 60)}m"
+            elif hours < 24:
+                return f"{hours:.1f}h"
+            else:
+                return f"{hours/24:.1f}d"
+        return "No response"
+    response_time_display.short_description = 'Response Time'
+    
+    def mark_as_read(self, request, queryset):
+        """Mark selected messages as read"""
+        updated = 0
+        for message in queryset:
+            if message.status == 'new':
+                message.mark_as_read()
+                updated += 1
+        self.message_user(request, f"Marked {updated} messages as read.")
+    mark_as_read.short_description = "Mark as read"
+    
+    def mark_as_responded(self, request, queryset):
+        """Mark selected messages as responded"""
+        updated = 0
+        for message in queryset:
+            if message.status in ['new', 'read', 'in_progress']:
+                message.mark_as_responded()
+                updated += 1
+        self.message_user(request, f"Marked {updated} messages as responded.")
+    mark_as_responded.short_description = "Mark as responded"
+    
+    def mark_as_resolved(self, request, queryset):
+        """Mark selected messages as resolved"""
+        updated = queryset.update(status='resolved')
+        self.message_user(request, f"Marked {updated} messages as resolved.")
+    mark_as_resolved.short_description = "Mark as resolved"
+    
+    def convert_to_tickets(self, request, queryset):
+        """Convert selected messages to tickets"""
+        converted = 0
+        for message in queryset:
+            if not message.related_ticket:
+                try:
+                    message.convert_to_ticket()
+                    converted += 1
+                except Exception as e:
+                    self.message_user(request, f"Error converting {message.name}: {str(e)}", level='ERROR')
+        self.message_user(request, f"Converted {converted} messages to tickets.")
+    convert_to_tickets.short_description = "Convert to tickets"

@@ -1,6 +1,26 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, MessageCircle, CheckCircle, AlertCircle } from 'lucide-react';
+
+// API service for contact messages
+const contactAPI = {
+  async submitMessage(messageData) {
+    const response = await fetch('/api/support/contact/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messageData),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to submit message');
+    }
+    
+    return response.json();
+  }
+};
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -11,18 +31,140 @@ const ContactUs = () => {
     message: ''
   });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const [formState, setFormState] = useState({
+    isSubmitting: false,
+    isSubmitted: false,
+    error: null,
+    fieldErrors: {}
+  });
+
+  // Exact categories from our backend model
+  const categories = [
+    { value: 'technical', label: 'Technical Support' },
+    { value: 'billing', label: 'Billing & Payments' },
+    { value: 'distribution', label: 'Music Distribution' },
+    { value: 'royalties', label: 'Royalties & Analytics' },
+    { value: 'account', label: 'Account Issues' },
+    { value: 'partnership', label: 'Partnership Inquiry' },
+    { value: 'general', label: 'General Inquiry' },
+    { value: 'other', label: 'Other' }
+  ];
+
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'name':
+        return value.length < 2 ? 'Name must be at least 2 characters' : null;
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return !emailRegex.test(value) ? 'Please enter a valid email address' : null;
+      case 'subject':
+        return value.length < 5 ? 'Subject must be at least 5 characters' : null;
+      case 'category':
+        return !value ? 'Please select a category' : null;
+      case 'message':
+        return value.length < 10 ? 'Message must be at least 10 characters' : null;
+      default:
+        return null;
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+
+    // Clear field error when user starts typing
+    if (formState.fieldErrors[name]) {
+      setFormState(prev => ({
+        ...prev,
+        fieldErrors: {
+          ...prev.fieldErrors,
+          [name]: null
+        }
+      }));
+    }
+
+    // Real-time validation
+    const error = validateField(name, value);
+    if (error) {
+      setFormState(prev => ({
+        ...prev,
+        fieldErrors: {
+          ...prev.fieldErrors,
+          [name]: error
+        }
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    Object.keys(formData).forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        errors[field] = error;
+      }
+    });
+    return errors;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
-    // Reset form or show success message
+    
+    // Validate all fields
+    const fieldErrors = validateForm();
+    if (Object.keys(fieldErrors).length > 0) {
+      setFormState(prev => ({
+        ...prev,
+        fieldErrors
+      }));
+      return;
+    }
+
+    setFormState(prev => ({
+      ...prev,
+      isSubmitting: true,
+      error: null
+    }));
+
+    try {
+      await contactAPI.submitMessage(formData);
+      
+      setFormState(prev => ({
+        ...prev,
+        isSubmitting: false,
+        isSubmitted: true,
+        error: null
+      }));
+
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        category: '',
+        message: ''
+      });
+
+    } catch (error) {
+      setFormState(prev => ({
+        ...prev,
+        isSubmitting: false,
+        error: error.message
+      }));
+    }
+  };
+
+  const resetForm = () => {
+    setFormState({
+      isSubmitting: false,
+      isSubmitted: false,
+      error: null,
+      fieldErrors: {}
+    });
   };
 
   const contactMethods = [
@@ -70,6 +212,37 @@ const ContactUs = () => {
     }
   ];
 
+  // Success state component
+  if (formState.isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center p-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Message Sent!</h1>
+          <p className="text-gray-600 mb-6">
+            Thank you for contacting us. We've received your message and will get back to you within 24 hours.
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={resetForm}
+              className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-medium"
+            >
+              Send Another Message
+            </button>
+            <Link
+              to="/"
+              className="block w-full px-6 py-3 bg-gray-100 text-gray-900 rounded-xl hover:bg-gray-200 transition-all duration-300 font-medium"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
       {/* Hero Section */}
@@ -113,11 +286,23 @@ const ContactUs = () => {
             {/* Contact Form */}
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Send us a message</h2>
+              
+              {/* Error Alert */}
+              {formState.error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start">
+                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <p className="text-red-800 font-medium">Failed to send message</p>
+                    <p className="text-red-600 text-sm mt-1">{formState.error}</p>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name
+                      Full Name *
                     </label>
                     <input
                       type="text"
@@ -126,14 +311,21 @@ const ContactUs = () => {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                      className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 ${
+                        formState.fieldErrors.name 
+                          ? 'border-red-300 focus:ring-2 focus:ring-red-500' 
+                          : 'border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                      }`}
                       placeholder="Your full name"
                     />
+                    {formState.fieldErrors.name && (
+                      <p className="mt-1 text-sm text-red-600">{formState.fieldErrors.name}</p>
+                    )}
                   </div>
                   
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address
+                      Email Address *
                     </label>
                     <input
                       type="email"
@@ -142,15 +334,22 @@ const ContactUs = () => {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                      className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 ${
+                        formState.fieldErrors.email 
+                          ? 'border-red-300 focus:ring-2 focus:ring-red-500' 
+                          : 'border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                      }`}
                       placeholder="your@email.com"
                     />
+                    {formState.fieldErrors.email && (
+                      <p className="mt-1 text-sm text-red-600">{formState.fieldErrors.email}</p>
+                    )}
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
+                    Category *
                   </label>
                   <select
                     id="category"
@@ -158,22 +357,27 @@ const ContactUs = () => {
                     value={formData.category}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 ${
+                      formState.fieldErrors.category 
+                        ? 'border-red-300 focus:ring-2 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                    }`}
                   >
                     <option value="">Select a category</option>
-                    <option value="technical">Technical Support</option>
-                    <option value="billing">Billing & Payments</option>
-                    <option value="distribution">Music Distribution</option>
-                    <option value="royalties">Royalties & Analytics</option>
-                    <option value="account">Account Issues</option>
-                    <option value="partnership">Partnership Inquiry</option>
-                    <option value="other">Other</option>
+                    {categories.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
                   </select>
+                  {formState.fieldErrors.category && (
+                    <p className="mt-1 text-sm text-red-600">{formState.fieldErrors.category}</p>
+                  )}
                 </div>
 
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                    Subject
+                    Subject *
                   </label>
                   <input
                     type="text"
@@ -182,14 +386,21 @@ const ContactUs = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 ${
+                      formState.fieldErrors.subject 
+                        ? 'border-red-300 focus:ring-2 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                    }`}
                     placeholder="Brief description of your inquiry"
                   />
+                  {formState.fieldErrors.subject && (
+                    <p className="mt-1 text-sm text-red-600">{formState.fieldErrors.subject}</p>
+                  )}
                 </div>
 
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                    Message
+                    Message *
                   </label>
                   <textarea
                     id="message"
@@ -198,17 +409,41 @@ const ContactUs = () => {
                     onChange={handleChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
+                    className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 resize-none ${
+                      formState.fieldErrors.message 
+                        ? 'border-red-300 focus:ring-2 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                    }`}
                     placeholder="Please provide as much detail as possible..."
                   />
+                  {formState.fieldErrors.message && (
+                    <p className="mt-1 text-sm text-red-600">{formState.fieldErrors.message}</p>
+                  )}
+                  <p className="mt-1 text-sm text-gray-500">
+                    {formData.message.length}/500 characters
+                  </p>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-medium text-lg"
+                  disabled={formState.isSubmitting}
+                  className={`w-full inline-flex items-center justify-center px-8 py-4 rounded-xl transition-all duration-300 font-medium text-lg ${
+                    formState.isSubmitting
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                  }`}
                 >
-                  <Send className="h-5 w-5 mr-2" />
-                  Send Message
+                  {formState.isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-5 w-5 mr-2" />
+                      Send Message
+                    </>
+                  )}
                 </button>
               </form>
             </div>

@@ -143,6 +143,26 @@ class Command(BaseCommand):
                 'is_active': True,
                 'default_email_enabled': True,
             },
+            
+            # Contact system notifications
+            {
+                'name': 'contact_confirmation',
+                'category': 'system',
+                'description': 'Contact form submission confirmation',
+                'email_subject_template': 'We received your message: {{ context_data.subject }}',
+                'email_template_name': 'contact_confirmation',
+                'is_active': True,
+                'default_email_enabled': True,
+            },
+            {
+                'name': 'contact_admin_alert',
+                'category': 'admin',
+                'description': 'New contact message alert for admins',
+                'email_subject_template': '[ADMIN] New Contact: {{ context_data.category }}',
+                'email_template_name': 'contact_admin_alert',
+                'is_active': True,
+                'default_email_enabled': True,
+            },
         ]
         
         created_count = 0
@@ -237,6 +257,20 @@ class Command(BaseCommand):
                 'template_type': 'system',
                 'subject_template': '[ADMIN] {{ title }}',
                 'html_template': '{% load static %}{% include "notifications/admin_notification.html" %}',
+                'is_default': True,
+            },
+            {
+                'name': 'contact_confirmation',
+                'template_type': 'transactional',
+                'subject_template': 'We received your message: {{ context_data.subject }}',
+                'html_template': '{% load static %}{% include "notifications/contact_confirmation.html" %}',
+                'is_default': True,
+            },
+            {
+                'name': 'contact_admin_alert',
+                'template_type': 'system',
+                'subject_template': '[ADMIN] New Contact: {{ context_data.category }}',
+                'html_template': '{% load static %}{% include "notifications/contact_admin_alert.html" %}',
                 'is_default': True,
             },
         ]

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Contact Form Submission</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .alert-info {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .alert-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .alert-info h2 {
+            color: #d97706;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .contact-details {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1px solid #fbbf24;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        .details-title {
+            color: #92400e;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .details-title::before {
+            content: "👤";
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid #fbbf24;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: #92400e;
+            font-weight: 600;
+            min-width: 120px;
+        }
+        .detail-value {
+            color: #1f2937;
+            font-weight: 500;
+            flex: 1;
+            text-align: right;
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .priority-high {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .priority-medium {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        .priority-low {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+        .message-preview {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .message-preview h4 {
+            color: #1f2937;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .message-preview h4::before {
+            content: "💬";
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .message-text {
+            color: #4b5563;
+            font-style: italic;
+            line-height: 1.6;
+            background-color: white;
+            padding: 15px;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+        }
+        .quick-actions {
+            background-color: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .actions-title {
+            color: #0369a1;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .actions-title::before {
+            content: "⚡";
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #d97706;
+            border: 2px solid #d97706;
+        }
+        .metadata {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .metadata h5 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #374151;
+            font-size: 14px;
+        }
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                box-shadow: none;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .detail-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .detail-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 New Contact Message</h1>
+            <p>A new contact form submission requires your attention</p>
+        </div>
+        
+        <div class="content">
+            <div class="alert-info">
+                <div class="alert-icon">📬</div>
+                <h2>Contact Form Submission</h2>
+                <p>A new message has been submitted through the contact form and is waiting for your review.</p>
+            </div>
+            
+            <div class="contact-details">
+                <div class="details-title">Contact Information</div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Name:</span>
+                    <span class="detail-value">{{ context_data.contact_name|default:"Unknown" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">{{ context_data.contact_email|default:"No email provided" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Subject:</span>
+                    <span class="detail-value">{{ context_data.subject|default:"No subject" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Category:</span>
+                    <span class="detail-value">{{ context_data.category|default:"General" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Priority:</span>
+                    <span class="detail-value">
+                        <span class="priority-badge priority-{{ context_data.priority|default:'medium'|lower }}">
+                            {{ context_data.priority|default:"Medium" }}
+                        </span>
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Submitted:</span>
+                    <span class="detail-value">{{ context_data.created_at|default:"Just now" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Message ID:</span>
+                    <span class="detail-value">#{{ context_data.message_id|default:"MSG-12345" }}</span>
+                </div>
+            </div>
+            
+            <div class="message-preview">
+                <h4>Message Content</h4>
+                <div class="message-text">
+                    {{ context_data.message_preview|default:"No message content available." }}
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <div class="actions-title">Quick Actions</div>
+                <div class="action-buttons">
+                    <a href="{{ context_data.admin_url|default:'#' }}" class="btn btn-primary">View in Admin</a>
+                    <a href="mailto:{{ context_data.contact_email }}" class="btn btn-secondary">Reply via Email</a>
+                    <a href="{{ frontend_url }}/admin/support/contactmessage/" class="btn btn-outline">Manage All Messages</a>
+                </div>
+            </div>
+            
+            <div class="metadata">
+                <h5>📊 Technical Details</h5>
+                <div class="metadata-grid">
+                    <div><strong>Message ID:</strong> {{ context_data.message_id|default:"N/A" }}</div>
+                    <div><strong>Timestamp:</strong> {{ context_data.created_at|default:"N/A" }}</div>
+                    <div><strong>User Agent:</strong> {{ context_data.user_agent|default:"N/A"|truncatechars:50 }}</div>
+                    <div><strong>IP Address:</strong> {{ context_data.ip_address|default:"N/A" }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🎯 <strong>Response Time Goal:</strong> Reply within 24 hours for optimal customer satisfaction</p>
+            <div class="footer-links">
+                <a href="{{ frontend_url }}/admin">Admin Dashboard</a>
+                <a href="{{ frontend_url }}/admin/support/contactmessage/">All Messages</a>
+                <a href="{{ frontend_url }}/help">Help Center</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 12px;">
+                This is an automated notification from the Music Distribution Platform contact system.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

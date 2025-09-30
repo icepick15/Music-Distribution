@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Received - Thank You</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .thank-you {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .thank-you-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .thank-you h2 {
+            color: #1d4ed8;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .message-summary {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #93c5fd;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        .summary-title {
+            color: #1e40af;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .summary-title::before {
+            content: "📋";
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #cbd5e1;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+        .summary-value {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .message-preview {
+            background-color: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #4b5563;
+        }
+        .response-timeline {
+            background-color: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .timeline-title {
+            color: #0369a1;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .timeline-title::before {
+            content: "⏰";
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+        .timeline-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #0ea5e9;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .timeline-icon.completed {
+            background-color: #10b981;
+        }
+        .timeline-content {
+            flex: 1;
+        }
+        .timeline-content h4 {
+            margin: 0 0 5px 0;
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .timeline-content p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .contact-info {
+            background-color: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .contact-info h3 {
+            color: #92400e;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .contact-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .contact-method {
+            background-color: white;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+        .contact-method-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .contact-method-text {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                box-shadow: none;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .summary-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .contact-methods {
+                grid-template-columns: 1fr;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✉️ Message Received</h1>
+            <p>We've got your message and we're on it!</p>
+        </div>
+        
+        <div class="content">
+            <div class="thank-you">
+                <div class="thank-you-icon">🙏</div>
+                <h2>Thank you, {{ context_data.contact_name|default:"there" }}!</h2>
+                <p>We've received your message and appreciate you taking the time to reach out to us. Our support team will review your inquiry and get back to you as soon as possible.</p>
+            </div>
+            
+            <div class="message-summary">
+                <div class="summary-title">Your Message Summary</div>
+                
+                <div class="summary-item">
+                    <span class="summary-label">Message ID:</span>
+                    <span class="summary-value">#{{ context_data.message_id|default:"12345" }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Subject:</span>
+                    <span class="summary-value">{{ context_data.subject|default:"Your Inquiry" }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Category:</span>
+                    <span class="summary-value">{{ context_data.category|default:"General Inquiry" }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Submitted:</span>
+                    <span class="summary-value">{{ context_data.created_at|default:"Just now" }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Contact Email:</span>
+                    <span class="summary-value">{{ context_data.contact_email|default:user.email }}</span>
+                </div>
+            </div>
+            
+            <div class="response-timeline">
+                <div class="timeline-title">What happens next?</div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon completed">✓</div>
+                    <div class="timeline-content">
+                        <h4>Message Received</h4>
+                        <p>Your message has been successfully received and logged in our system</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">2</div>
+                    <div class="timeline-content">
+                        <h4>Team Review</h4>
+                        <p>Our support team will review your message and determine the best way to help</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">3</div>
+                    <div class="timeline-content">
+                        <h4>Response Sent</h4>
+                        <p>We'll send you a detailed response within 24 hours (usually much sooner!)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="contact-info">
+                <h3>📞 Need Immediate Help?</h3>
+                <p>If your inquiry is urgent, you can also reach us through these channels:</p>
+                
+                <div class="contact-methods">
+                    <div class="contact-method">
+                        <div class="contact-method-icon">📧</div>
+                        <div class="contact-method-text">{{ support_email|default:"support@musicdist.com" }}</div>
+                    </div>
+                    <div class="contact-method">
+                        <div class="contact-method-icon">💬</div>
+                        <div class="contact-method-text">Live Chat (Mon-Fri 9AM-6PM)</div>
+                    </div>
+                    <div class="contact-method">
+                        <div class="contact-method-icon">📚</div>
+                        <div class="contact-method-text">Help Center & FAQ</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ frontend_url }}/help" class="btn btn-primary">Visit Help Center</a>
+                <a href="{{ frontend_url }}/contact" class="btn btn-secondary">Send Another Message</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>💝 Thank you for choosing Music Distribution Platform. We're here to help you succeed!</p>
+            <div class="footer-links">
+                <a href="{{ frontend_url }}/help">Help Center</a>
+                <a href="{{ frontend_url }}/contact">Contact Us</a>
+                <a href="{{ frontend_url }}/dashboard">Dashboard</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 12px;">
+                Please keep this email for your records. Reference ID: {{ context_data.message_id|default:"MSG-12345" }}
+            </p>
+        </div>
+    </div>
+</body>
+</html>
