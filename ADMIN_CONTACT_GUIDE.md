@@ -1,16 +1,19 @@
 # 👥 Admin Guide: Accessing Contact Messages
 
 ## 🎯 Overview
+
 As an admin, you have multiple ways to access, manage, and respond to contact messages. Here are all the methods available:
 
 ## 1. 🖥️ Django Admin Interface (Recommended)
 
 ### Access URL:
+
 ```
 http://localhost:8000/admin/support/contactmessage/
 ```
 
 ### Features:
+
 - **Visual Dashboard** with color-coded status and priority badges
 - **Filtering** by status, priority, category, date, user
 - **Search** across name, email, subject, message content
@@ -19,20 +22,23 @@ http://localhost:8000/admin/support/contactmessage/
 - **Response Time Tracking** with human-readable format
 
 ### Admin Actions Available:
+
 - ✅ Mark as read
-- ✅ Mark as responded  
+- ✅ Mark as responded
 - ✅ Mark as resolved
 - ✅ Convert to tickets (bulk)
 
 ## 2. 🚀 REST API Endpoints
 
 ### List All Contact Messages
+
 ```bash
 GET http://localhost:8000/api/support/contact/
 Authorization: Token <your-admin-token>
 ```
 
 **Response:**
+
 ```json
 {
   "count": 150,
@@ -61,12 +67,14 @@ Authorization: Token <your-admin-token>
 ```
 
 ### Get Specific Contact Message
+
 ```bash
 GET http://localhost:8000/api/support/contact/{message_id}/
 Authorization: Token <your-admin-token>
 ```
 
 ### Filter Messages
+
 ```bash
 # By status
 GET /api/support/contact/?status=new
@@ -88,12 +96,14 @@ GET /api/support/contact/?status=new&category=technical&priority=high
 ```
 
 ### Get Contact Statistics
+
 ```bash
 GET http://localhost:8000/api/support/contact/stats/
 Authorization: Token <your-admin-token>
 ```
 
 **Response:**
+
 ```json
 {
   "total_messages": 150,
@@ -127,6 +137,7 @@ Authorization: Token <your-admin-token>
 ```
 
 ### Get Urgent Messages
+
 ```bash
 GET http://localhost:8000/api/support/contact/urgent/
 Authorization: Token <your-admin-token>
@@ -135,18 +146,21 @@ Authorization: Token <your-admin-token>
 ## 3. 🔧 Management Actions
 
 ### Mark as Read
+
 ```bash
 POST http://localhost:8000/api/support/contact/{message_id}/mark_as_read/
 Authorization: Token <your-admin-token>
 ```
 
 ### Mark as Responded
+
 ```bash
 POST http://localhost:8000/api/support/contact/{message_id}/mark_as_responded/
 Authorization: Token <your-admin-token>
 ```
 
 ### Update Status
+
 ```bash
 PATCH http://localhost:8000/api/support/contact/{message_id}/update_status/
 Authorization: Token <your-admin-token>
@@ -158,6 +172,7 @@ Content-Type: application/json
 ```
 
 ### Convert to Ticket
+
 ```bash
 POST http://localhost:8000/api/support/contact/{message_id}/convert_to_ticket/
 Authorization: Token <your-admin-token>
@@ -233,6 +248,7 @@ curl -H "Authorization: Token YOUR_TOKEN" \
 When you access the Django Admin interface, you'll see:
 
 ### List View Features:
+
 - **Name & Email** - Contact person details
 - **Subject** - Message subject line
 - **Status Badge** - Color-coded status (New=Red, Read=Blue, etc.)
@@ -242,6 +258,7 @@ When you access the Django Admin interface, you'll see:
 - **Response Time** - How long to respond (if applicable)
 
 ### Filter Sidebar:
+
 - Status (New, Read, In Progress, Responded, Resolved)
 - Priority (Low, Medium, High, Urgent)
 - Category (Technical, Billing, Distribution, etc.)
@@ -249,7 +266,9 @@ When you access the Django Admin interface, you'll see:
 - User (Registered users who submitted messages)
 
 ### Search Box:
+
 Search across:
+
 - Contact name
 - Email address
 - Subject line
@@ -265,11 +284,13 @@ To access contact messages as admin, you need:
 3. **Permissions**: The ContactMessageViewSet checks for `IsAdminUser` permission
 
 ### Create Admin User:
+
 ```bash
 python manage.py createsuperuser
 ```
 
 ### Get API Token (if using token auth):
+
 ```python
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
