@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Issue</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .failure-message {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .failure-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: shake 0.5s ease-in-out;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .failure-message h2 {
+            color: #dc2626;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .payment-details {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fca5a5;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+        .amount-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #fca5a5;
+            margin-bottom: 20px;
+        }
+        .amount-label {
+            color: #b91c1c;
+            font-weight: 600;
+        }
+        .amount-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #dc2626;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .detail-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .error-details {
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .error-details h3 {
+            color: #b91c1c;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .error-details h3::before {
+            content: "⚠️";
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .error-item {
+            background-color: white;
+            border-left: 4px solid #dc2626;
+            border-radius: 4px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+        }
+        .error-item:last-child {
+            margin-bottom: 0;
+        }
+        .error-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        .error-description {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+        .resolution-steps {
+            background-color: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .resolution-steps h3 {
+            color: #0369a1;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .resolution-steps h3::before {
+            content: "🔧";
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            border-left: 4px solid #0ea5e9;
+        }
+        .step-number {
+            background-color: #0ea5e9;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .step-content h4 {
+            margin: 0 0 5px 0;
+            color: #0369a1;
+            font-weight: 600;
+        }
+        .step-content p {
+            margin: 0;
+            color: #374151;
+            font-size: 14px;
+        }
+        .retry-info {
+            background-color: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .retry-info h4 {
+            color: #92400e;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .retry-date {
+            font-size: 18px;
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 10px;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #dc2626;
+            border: 2px solid #dc2626;
+        }
+        .support-box {
+            background-color: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .support-box h4 {
+            color: #1f2937;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                box-shadow: none;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .amount-row, .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .step-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            .step-number {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❌ Payment Issue</h1>
+            <p>We encountered a problem processing your payment</p>
+        </div>
+        
+        <div class="content">
+            <div class="failure-message">
+                <div class="failure-icon">🚫</div>
+                <h2>Payment Failed, {{ user.first_name|default:user.username }}</h2>
+                <p>We were unable to process your royalty payment due to an issue with your payment information. Don't worry - your earnings are safe and we'll resolve this quickly.</p>
+            </div>
+            
+            <div class="payment-details">
+                <div class="amount-row">
+                    <span class="amount-label">Payment Amount</span>
+                    <span class="amount-value">${{ context_data.amount|default:"125.67" }}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Payment Period</span>
+                    <span class="detail-value">{{ context_data.payment_period|default:"August 2025" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Attempted On</span>
+                    <span class="detail-value">{{ context_data.attempt_date|default:"September 30, 2025" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Transaction ID</span>
+                    <span class="detail-value">{{ context_data.transaction_id|default:"TXN-2025-08-001234" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value" style="color: #dc2626; font-weight: 700;">Failed</span>
+                </div>
+            </div>
+            
+            <div class="error-details">
+                <h3>Why did this happen?</h3>
+                
+                {% if context_data.failure_reasons %}
+                    {% for reason in context_data.failure_reasons %}
+                    <div class="error-item">
+                        <div class="error-title">{{ reason.title }}</div>
+                        <p class="error-description">{{ reason.description }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="error-item">
+                        <div class="error-title">Invalid Account Information</div>
+                        <p class="error-description">The bank account information on file appears to be outdated or incorrect.</p>
+                    </div>
+                    
+                    <div class="error-item">
+                        <div class="error-title">Account Verification Required</div>
+                        <p class="error-description">Your payment account may need additional verification before we can process payments.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="resolution-steps">
+                <h3>How to fix this</h3>
+                
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Check Your Payment Settings</h4>
+                        <p>Review your bank account information and ensure all details are correct and up-to-date.</p>
+                    </div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Verify Account Status</h4>
+                        <p>Confirm your bank account is active and able to receive transfers.</p>
+                    </div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Update Information</h4>
+                        <p>If needed, update your payment information in your account settings.</p>
+                    </div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Contact Support</h4>
+                        <p>If the issue persists, our support team is here to help resolve any payment problems.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="retry-info">
+                <h4>🔄 Automatic Retry</h4>
+                <p>We'll automatically attempt to process this payment again on:</p>
+                <div class="retry-date">{{ context_data.retry_date|default:"October 7, 2025" }}</div>
+                <p style="font-size: 14px; color: #6b7280; margin: 0;">Make sure to update your payment information before this date.</p>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ frontend_url }}/settings/payments" class="btn btn-primary">Update Payment Info</a>
+                <a href="{{ frontend_url }}/dashboard/payments" class="btn btn-secondary">Payment History</a>
+                <a href="{{ frontend_url }}/help/payments" class="btn btn-outline">Payment Help</a>
+            </div>
+            
+            <div class="support-box">
+                <h4>🤝 Need Help?</h4>
+                <p>Our payment specialists are available to help resolve any issues with your account. Don't let payment problems stop your music career!</p>
+                <a href="mailto:{{ support_email }}" class="btn btn-secondary" style="margin-top: 15px;">Contact Payment Support</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>💪 Don't worry - payment issues happen and we'll get this sorted out quickly. Your earnings are secure!</p>
+            <div class="footer-links">
+                <a href="{{ frontend_url }}/dashboard">Dashboard</a>
+                <a href="{{ frontend_url }}/settings">Account Settings</a>
+                <a href="{{ frontend_url }}/help/payments">Payment FAQ</a>
+                <a href="mailto:{{ support_email }}">Support</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 12px;">
+                Your earnings remain in your account until payment issues are resolved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

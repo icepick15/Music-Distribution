@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Review Decision</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .status-message {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .status-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .status-message h2 {
+            color: #dc2626;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .song-card {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fca5a5;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .song-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #b91c1c;
+            margin-bottom: 10px;
+        }
+        .song-artist {
+            font-size: 18px;
+            color: #dc2626;
+            margin-bottom: 20px;
+        }
+        .rejection-reasons {
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .rejection-reasons h3 {
+            color: #b91c1c;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .rejection-reasons h3::before {
+            content: "⚠️";
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .reason-item {
+            background-color: white;
+            border-left: 4px solid #dc2626;
+            border-radius: 4px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+        }
+        .reason-item:last-child {
+            margin-bottom: 0;
+        }
+        .reason-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+        .reason-description {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+        .improvement-tips {
+            background-color: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .improvement-tips h3 {
+            color: #0369a1;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .improvement-tips h3::before {
+            content: "💡";
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .tip-item {
+            background-color: white;
+            border-left: 4px solid #0ea5e9;
+            border-radius: 4px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+        }
+        .tip-item:last-child {
+            margin-bottom: 0;
+        }
+        .tip-title {
+            font-weight: 600;
+            color: #0369a1;
+            margin-bottom: 5px;
+        }
+        .tip-description {
+            color: #374151;
+            font-size: 14px;
+            margin: 0;
+        }
+        .next-steps {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .next-steps h3 {
+            color: #1f2937;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .step-list {
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 6px;
+        }
+        .step-number {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .support-box {
+            background-color: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .support-box h4 {
+            color: #1f2937;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                box-shadow: none;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+            .step-list {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❌ Review Decision</h1>
+            <p>Your song submission requires attention</p>
+        </div>
+        
+        <div class="content">
+            <div class="status-message">
+                <div class="status-icon">🔍</div>
+                <h2>Hello {{ user.first_name|default:user.username }},</h2>
+                <p>We've completed our review of your song submission. While we appreciate your creativity, we need to address some issues before we can approve it for distribution.</p>
+            </div>
+            
+            <div class="song-card">
+                <div class="song-title">"{{ context_data.song_title|default:"Your Song" }}"</div>
+                <div class="song-artist">by {{ context_data.artist_name|default:user.get_full_name }}</div>
+            </div>
+            
+            <div class="rejection-reasons">
+                <h3>Issues Identified</h3>
+                
+                {% if context_data.rejection_reasons %}
+                    {% for reason in context_data.rejection_reasons %}
+                    <div class="reason-item">
+                        <div class="reason-title">{{ reason.title }}</div>
+                        <p class="reason-description">{{ reason.description }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="reason-item">
+                        <div class="reason-title">Audio Quality</div>
+                        <p class="reason-description">The audio quality doesn't meet our minimum standards for distribution. Please ensure your file is high-quality (320kbps MP3 or lossless format).</p>
+                    </div>
+                    
+                    <div class="reason-item">
+                        <div class="reason-title">Metadata Incomplete</div>
+                        <p class="reason-description">Some required metadata fields are missing or incomplete. Please review and complete all song information.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="improvement-tips">
+                <h3>How to Fix These Issues</h3>
+                
+                <div class="tip-item">
+                    <div class="tip-title">Audio Quality Standards</div>
+                    <p class="tip-description">Upload files in WAV, FLAC, or high-quality MP3 (320kbps minimum). Avoid compressed or low-bitrate files.</p>
+                </div>
+                
+                <div class="tip-item">
+                    <div class="tip-title">Complete Metadata</div>
+                    <p class="tip-description">Ensure all fields are filled: song title, artist name, album, genre, release date, and copyright information.</p>
+                </div>
+                
+                <div class="tip-item">
+                    <div class="tip-title">Artwork Requirements</div>
+                    <p class="tip-description">Use high-resolution cover art (minimum 3000x3000 pixels) in JPG or PNG format without text overlays.</p>
+                </div>
+                
+                <div class="tip-item">
+                    <div class="tip-title">Copyright Verification</div>
+                    <p class="tip-description">Only upload original content or music you have proper licensing rights to distribute.</p>
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <h3>🚀 Next Steps</h3>
+                <div class="step-list">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div>Review the issues identified above and our guidelines</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div>Make the necessary improvements to your song and metadata</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div>Re-upload your improved version for a new review</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div>Track your submission status in your dashboard</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ frontend_url }}/dashboard/songs/new" class="btn btn-primary">Upload New Version</a>
+                <a href="{{ frontend_url }}/help/submission-guidelines" class="btn btn-secondary">View Guidelines</a>
+            </div>
+            
+            <div class="support-box">
+                <h4>🤝 Need Help?</h4>
+                <p>Our support team is here to help you succeed. If you have questions about the feedback or need assistance improving your submission, don't hesitate to reach out.</p>
+                <a href="mailto:{{ support_email }}" class="btn btn-secondary" style="margin-top: 15px;">Contact Support</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Don't give up! Most successful artists go through this process. We're here to help you improve and succeed.</p>
+            <div class="footer-links">
+                <a href="{{ frontend_url }}/dashboard">Dashboard</a>
+                <a href="{{ frontend_url }}/help">Help Center</a>
+                <a href="{{ frontend_url }}/help/quality-standards">Quality Standards</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 12px;">
+                Remember: Quality over quantity. Take time to perfect your craft!
+            </p>
+        </div>
+    </div>
+</body>
+</html>

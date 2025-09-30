@@ -2,6 +2,7 @@ from django.utils import timezone
 from .models import Notification, NotificationType, UserNotificationPreference
 from .tasks import send_notification_email, send_admin_notification_email
 import logging
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +68,9 @@ class NotificationService:
         
         # Send immediate notifications or schedule for digest
         if preferences.frequency == 'immediate' or priority in ['high', 'urgent']:
-            # Send immediately
+            # Send immediately using our ZeptoMail backend
             if notification.send_email:
-                send_notification_email.delay(str(notification.id))
+                NotificationService._send_notification_email_direct(notification)
         else:
             # Will be sent as digest
             logger.info(f"Notification {notification.id} scheduled for {preferences.frequency} digest")
@@ -251,3 +252,69 @@ class NotificationService:
         
         logger.info(f"Created {created_count} notification types")
         return created_count
+
+    @staticmethod
+    def _send_notification_email_direct(notification):
+        """
+        Send notification email directly using Django's email backend (ZeptoMail)
+        """
+        from django.template.loader import render_to_string
+        from django.core.mail import EmailMessage
+        from django.conf import settings
+        
+        try:
+            # Get the email template name from notification type
+            template_name = notification.notification_type.email_template_name
+            if not template_name:
+                template_name = 'default_email'
+            
+            # Prepare context for template
+            context = {
+                'user': notification.recipient,
+                'notification': notification,
+                'site_name': getattr(settings, 'SITE_NAME', 'Music Distribution Platform'),
+                'frontend_url': getattr(settings, 'FRONTEND_URL', 'http://localhost:5173'),
+                'support_email': getattr(settings, 'DEFAULT_FROM_EMAIL', 'support@zabug.com'),
+                'year': 2025,
+            }
+            
+            # Add context_data from notification
+            if notification.context_data:
+                context.update(notification.context_data)
+            
+            # Render HTML email
+            html_content = render_to_string(
+                f'notifications/{template_name}.html',
+                context
+            )
+            
+            # Create email message
+            subject = notification.title
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'support@zabug.com')
+            to_email = [notification.recipient.email]
+            
+            # Create HTML email
+            email = EmailMessage(
+                subject=subject,
+                body=html_content,
+                from_email=from_email,
+                to=to_email,
+            )
+            email.content_subtype = 'html'  # Set content type to HTML
+            
+            # Send email
+            email.send()
+            
+            # Update notification status
+            notification.status = 'sent'
+            notification.sent_at = timezone.now()
+            notification.save(update_fields=['status', 'sent_at'])
+            
+            logger.info(f"Email sent successfully for notification {notification.id}")
+            
+        except Exception as e:
+            # Mark as failed
+            notification.status = 'failed'
+            notification.save(update_fields=['status'])
+            logger.error(f"Failed to send email for notification {notification.id}: {str(e)}")
+            raise

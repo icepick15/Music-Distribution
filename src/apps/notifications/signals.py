@@ -30,18 +30,37 @@ def create_user_notification_preferences(sender, instance, created, **kwargs):
                 }
             )
         
-        # Send welcome notification
+        # Send welcome notification with enhanced context
         try:
+            from django.conf import settings
+            
             NotificationService.send_user_notification(
                 user=instance,
                 notification_type_name='user_welcome',
-                title=f"Welcome to Music Distribution Platform, {instance.get_full_name()}!",
-                message="Your account has been created successfully. Start uploading your music and reach millions of listeners worldwide.",
+                title=f"🎵 Welcome to Music Distribution Platform, {instance.first_name or instance.username}!",
+                message=f"Your account has been created successfully! We're excited to have you join our community of artists and music creators.",
                 context_data={
-                    'first_name': instance.first_name,
-                    'dashboard_url': '/dashboard',
+                    'first_name': instance.first_name or instance.username,
+                    'last_name': instance.last_name or '',
+                    'full_name': instance.get_full_name() or instance.username,
+                    'username': instance.username,
+                    'email': instance.email,
+                    'user_id': instance.id,
+                    'site_name': 'Music Distribution Platform',
+                    'frontend_url': getattr(settings, 'FRONTEND_URL', 'http://localhost:5173'),
+                    'dashboard_url': f"{getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')}/dashboard",
+                    'support_email': getattr(settings, 'DEFAULT_FROM_EMAIL', 'support@zabug.com'),
+                    'year': 2025,
+                    'welcome_message': 'Welcome to our amazing music platform!',
+                    'next_steps': [
+                        'Complete your profile',
+                        'Upload your first track',
+                        'Explore distribution options',
+                        'Connect with other artists'
+                    ]
                 }
             )
+            logger.info(f"Welcome notification sent successfully to {instance.email}")
         except Exception as e:
             logger.error(f"Failed to send welcome notification to {instance.email}: {str(e)}")
 

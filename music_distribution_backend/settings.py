@@ -421,16 +421,36 @@ LOGGING = {
     },
 }
 
-# Email Configuration (Gmail for testing)
-# Use console backend for testing (prints emails to console)
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # For real emails
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+# Email Configuration - ZeptoMail Integration
+EMAIL_MODE = config('EMAIL_MODE', default='console')
+
+# Dynamic Email Backend Selection
+if EMAIL_MODE == 'api':
+    EMAIL_BACKEND = 'src.apps.notifications.email_backends.ZeptoMailAPIBackend'
+elif EMAIL_MODE == 'hybrid':
+    EMAIL_BACKEND = 'src.apps.notifications.email_backends.HybridEmailBackend'
+elif EMAIL_MODE == 'smtp':
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+elif EMAIL_MODE == 'console':
+    EMAIL_BACKEND = 'src.apps.notifications.email_backends.ConsoleZeptoMailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# ZeptoMail API Configuration
+ZEPTOMAIL_API_KEY = config('ZEPTOMAIL_API_KEY', default='')
+ZEPTOMAIL_API_URL = config('ZEPTOMAIL_API_URL', default='https://api.zeptomail.com/v1.1/email')
+
+# SMTP Configuration (for fallback or direct SMTP mode)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.zeptomail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='iamicepick@gmail.com')
+
+# Email Settings
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@yourdomain.com')
+DEFAULT_FROM_NAME = config('DEFAULT_FROM_NAME', default='Music Distribution Platform')
 
 # Admin notification settings
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='iamicepick@gmail.com')

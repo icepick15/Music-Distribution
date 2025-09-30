@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Submitted for Review</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .status-message {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .status-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .status-message h2 {
+            color: #1d4ed8;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .song-card {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #93c5fd;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .song-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        .song-artist {
+            font-size: 18px;
+            color: #3b82f6;
+            margin-bottom: 20px;
+        }
+        .review-timeline {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .timeline-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .timeline-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .timeline-icon.completed {
+            background-color: #10b981;
+            color: white;
+        }
+        .timeline-icon.current {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .timeline-icon.pending {
+            background-color: #e5e7eb;
+            color: #6b7280;
+        }
+        .timeline-content h4 {
+            margin: 0 0 5px 0;
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .timeline-content p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .review-info {
+            background-color: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .review-info h3 {
+            color: #92400e;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .review-checklist {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .review-checklist li {
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        .eta-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .eta-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0369a1;
+            margin-bottom: 5px;
+        }
+        .eta-label {
+            color: #0369a1;
+            font-weight: 600;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                box-shadow: none;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .timeline-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            .timeline-icon {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Under Review</h1>
+            <p>Your song is being reviewed by our team</p>
+        </div>
+        
+        <div class="content">
+            <div class="status-message">
+                <div class="status-icon">⏳</div>
+                <h2>Thanks for your submission, {{ user.first_name|default:user.username }}!</h2>
+                <p>Your song is now in our review queue. Our expert team will carefully evaluate your music to ensure it meets our quality standards.</p>
+            </div>
+            
+            <div class="song-card">
+                <div class="song-title">"{{ context_data.song_title|default:"Your Amazing Song" }}"</div>
+                <div class="song-artist">by {{ context_data.artist_name|default:user.get_full_name }}</div>
+            </div>
+            
+            <div class="eta-box">
+                <div class="eta-time">24-48 Hours</div>
+                <div class="eta-label">Estimated Review Time</div>
+            </div>
+            
+            <div class="review-timeline">
+                <h3 style="margin-top: 0; color: #1f2937; text-align: center;">Review Process</h3>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon completed">✓</div>
+                    <div class="timeline-content">
+                        <h4>Song Uploaded</h4>
+                        <p>Your song has been successfully uploaded and received</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon current">2</div>
+                    <div class="timeline-content">
+                        <h4>Quality Review</h4>
+                        <p>Our team is checking audio quality and technical specifications</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon pending">3</div>
+                    <div class="timeline-content">
+                        <h4>Content Review</h4>
+                        <p>Ensuring compliance with platform guidelines and policies</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon pending">4</div>
+                    <div class="timeline-content">
+                        <h4>Final Approval</h4>
+                        <p>Song approved and ready for distribution to streaming platforms</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="review-info">
+                <h3>📝 What we're checking:</h3>
+                <ul class="review-checklist">
+                    <li>Audio quality and technical specifications</li>
+                    <li>Metadata accuracy (title, artist, genre, etc.)</li>
+                    <li>Copyright compliance and ownership verification</li>
+                    <li>Content guidelines and community standards</li>
+                    <li>Artwork quality and appropriateness</li>
+                </ul>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ frontend_url }}/dashboard/songs/{{ context_data.song_id }}" class="btn btn-primary">Track Progress</a>
+                <a href="{{ frontend_url }}/help/review-process" class="btn btn-secondary">Review Guidelines</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>You'll receive an email notification as soon as the review is complete.</p>
+            <div class="footer-links">
+                <a href="{{ frontend_url }}/dashboard">Dashboard</a>
+                <a href="{{ frontend_url }}/help">Help Center</a>
+                <a href="mailto:{{ support_email }}">Contact Support</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 12px;">
+                Questions about the review process? We're here to help!
+            </p>
+        </div>
+    </div>
+</body>
+</html>

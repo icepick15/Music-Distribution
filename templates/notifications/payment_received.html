@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Received</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .payment-success {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .payment-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .payment-success h2 {
+            color: #059669;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .payment-card {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #6ee7b7;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            position: relative;
+        }
+        .amount-display {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .currency-symbol {
+            font-size: 24px;
+            color: #059669;
+            vertical-align: top;
+        }
+        .amount {
+            font-size: 48px;
+            font-weight: 700;
+            color: #047857;
+            margin: 0 5px;
+        }
+        .payment-details {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .royalty-breakdown {
+            background-color: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .royalty-breakdown h3 {
+            color: #0369a1;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .royalty-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: white;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .royalty-item:last-child {
+            margin-bottom: 0;
+            border: 2px solid #0ea5e9;
+            font-weight: 600;
+        }
+        .platform-icon {
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        .next-payment {
+            background-color: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .next-payment h4 {
+            color: #92400e;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .next-payment-date {
+            font-size: 18px;
+            font-weight: 600;
+            color: #d97706;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                box-shadow: none;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .amount {
+                font-size: 36px;
+            }
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Payment Received</h1>
+            <p>Your royalties have been processed</p>
+        </div>
+        
+        <div class="content">
+            <div class="payment-success">
+                <div class="payment-icon">💸</div>
+                <h2>Payment Successful, {{ user.first_name|default:user.username }}!</h2>
+                <p>Great news! Your latest royalty payment has been processed and is on its way to your account.</p>
+            </div>
+            
+            <div class="payment-card">
+                <div class="amount-display">
+                    <span class="currency-symbol">$</span>
+                    <span class="amount">{{ context_data.amount|default:"125.67" }}</span>
+                </div>
+                
+                <div class="payment-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Period</span>
+                        <span class="detail-value">{{ context_data.payment_period|default:"August 2025" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Transaction ID</span>
+                        <span class="detail-value">{{ context_data.transaction_id|default:"TXN-2025-08-001234" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Method</span>
+                        <span class="detail-value">{{ context_data.payment_method|default:"Bank Transfer" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Processing Time</span>
+                        <span class="detail-value">1-3 Business Days</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="royalty-breakdown">
+                <h3>📊 Royalty Breakdown</h3>
+                
+                <div class="royalty-item">
+                    <span><span class="platform-icon">🎵</span>Spotify</span>
+                    <span>$67.89</span>
+                </div>
+                <div class="royalty-item">
+                    <span><span class="platform-icon">🍎</span>Apple Music</span>
+                    <span>$32.45</span>
+                </div>
+                <div class="royalty-item">
+                    <span><span class="platform-icon">▶️</span>YouTube Music</span>
+                    <span>$18.23</span>
+                </div>
+                <div class="royalty-item">
+                    <span><span class="platform-icon">🎧</span>Other Platforms</span>
+                    <span>$7.10</span>
+                </div>
+                <div class="royalty-item">
+                    <span><strong>Total Earned</strong></span>
+                    <span><strong>${{ context_data.amount|default:"125.67" }}</strong></span>
+                </div>
+            </div>
+            
+            <div class="next-payment">
+                <h4>📅 Next Payment</h4>
+                <p>Your next royalty payment will be processed around:</p>
+                <div class="next-payment-date">{{ context_data.next_payment_date|default:"October 30, 2025" }}</div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ frontend_url }}/dashboard/payments" class="btn btn-primary">View All Payments</a>
+                <a href="{{ frontend_url }}/dashboard/analytics" class="btn btn-secondary">View Analytics</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Keep creating amazing music! Your earnings reflect the love your fans have for your art.</p>
+            <div class="footer-links">
+                <a href="{{ frontend_url }}/dashboard">Dashboard</a>
+                <a href="{{ frontend_url }}/payments">Payment History</a>
+                <a href="mailto:{{ support_email }}">Contact Support</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 12px;">
+                Payment processing times may vary by payment method and location.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

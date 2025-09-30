@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Completed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #374151;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .completion-message {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .completion-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: checkmark 1s ease-in-out;
+        }
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .completion-message h2 {
+            color: #047857;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .payment-summary {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #6ee7b7;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .summary-amount {
+            font-size: 42px;
+            font-weight: 700;
+            color: #047857;
+            margin-bottom: 10px;
+        }
+        .summary-label {
+            color: #059669;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .completion-details {
+            background-color: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .detail-item {
+            text-align: center;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+        }
+        .detail-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .detail-label {
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .timeline {
+            margin: 40px 0;
+        }
+        .timeline-title {
+            text-align: center;
+            color: #1f2937;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+        .timeline-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #10b981;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .timeline-content h4 {
+            margin: 0 0 5px 0;
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .timeline-content p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .account-info {
+            background-color: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .account-info h4 {
+            color: #0369a1;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .account-info h4::before {
+            content: "🏦";
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .account-details {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .account-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .account-row:last-child {
+            margin-bottom: 0;
+        }
+        .security-notice {
+            background-color: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        .security-notice h4 {
+            color: #92400e;
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .security-notice h4::before {
+            content: "🔒";
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: #047857;
+            border: 2px solid #047857;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer-links {
+            margin: 20px 0;
+        }
+        .footer-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                box-shadow: none;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            .timeline-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            .timeline-icon {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Payment Completed</h1>
+            <p>Your funds have been successfully transferred</p>
+        </div>
+        
+        <div class="content">
+            <div class="completion-message">
+                <div class="completion-icon">✅</div>
+                <h2>Transfer Complete, {{ user.first_name|default:user.username }}!</h2>
+                <p>Your payment has been successfully processed and deposited into your account. You should see the funds reflected in your account within the next few hours.</p>
+            </div>
+            
+            <div class="payment-summary">
+                <div class="summary-amount">${{ context_data.amount|default:"125.67" }}</div>
+                <div class="summary-label">Successfully Transferred</div>
+                <div style="color: #059669; font-size: 14px;">Transaction completed on {{ context_data.completion_date|default:"September 30, 2025" }}</div>
+            </div>
+            
+            <div class="completion-details">
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-icon">📄</div>
+                        <div class="detail-label">Transaction ID</div>
+                        <div class="detail-value">{{ context_data.transaction_id|default:"TXN-2025-08-001234" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">⏰</div>
+                        <div class="detail-label">Processing Time</div>
+                        <div class="detail-value">{{ context_data.processing_time|default:"2 hours" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">💳</div>
+                        <div class="detail-label">Payment Method</div>
+                        <div class="detail-value">{{ context_data.payment_method|default:"Bank Transfer" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">🔒</div>
+                        <div class="detail-label">Security Status</div>
+                        <div class="detail-value">Verified & Secure</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timeline">
+                <div class="timeline-title">📋 Transaction Timeline</div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">✓</div>
+                    <div class="timeline-content">
+                        <h4>Payment Initiated</h4>
+                        <p>Royalty payment processed from your earnings</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">✓</div>
+                    <div class="timeline-content">
+                        <h4>Security Verification</h4>
+                        <p>Payment details verified and security checks completed</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">✓</div>
+                    <div class="timeline-content">
+                        <h4>Transfer Executed</h4>
+                        <p>Funds successfully transferred to your designated account</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon">✓</div>
+                    <div class="timeline-content">
+                        <h4>Confirmation Sent</h4>
+                        <p>Transaction completed and confirmation email delivered</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="account-info">
+                <h4>Deposited To</h4>
+                <div class="account-details">
+                    <div class="account-row">
+                        <span>Account Type:</span>
+                        <span>{{ context_data.account_type|default:"Checking Account" }}</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Account Ending:</span>
+                        <span>****{{ context_data.account_last_four|default:"1234" }}</span>
+                    </div>
+                    <div class="account-row">
+                        <span>Bank:</span>
+                        <span>{{ context_data.bank_name|default:"Your Bank" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="security-notice">
+                <h4>Security & Privacy</h4>
+                <ul style="margin: 0; padding-left: 20px; color: #374151;">
+                    <li>All transactions are encrypted and secure</li>
+                    <li>We never store your complete banking information</li>
+                    <li>This confirmation email serves as your receipt</li>
+                    <li>Contact support immediately if you notice any discrepancies</li>
+                </ul>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ frontend_url }}/dashboard/payments" class="btn btn-primary">View Payment History</a>
+                <a href="{{ frontend_url }}/dashboard/analytics" class="btn btn-secondary">View Earnings</a>
+                <a href="{{ frontend_url }}/settings/payments" class="btn btn-outline">Payment Settings</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🎉 Congratulations on your earnings! Keep creating amazing music that your fans love.</p>
+            <div class="footer-links">
+                <a href="{{ frontend_url }}/dashboard">Dashboard</a>
+                <a href="{{ frontend_url }}/payments">Payment History</a>
+                <a href="{{ frontend_url }}/tax-documents">Tax Documents</a>
+                <a href="mailto:{{ support_email }}">Support</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 12px;">
+                Keep this email for your records. You may need it for tax purposes.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
