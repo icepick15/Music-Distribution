@@ -277,7 +277,7 @@ const NotificationsPage = () => {
                       </div>
                       
                       <div className="flex-1 min-w-0 sm:ml-4">
-                        {/* Mobile: Header with title and unread indicator */}
+                        {/* Header with title and unread indicator */}
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-2 min-w-0 flex-1">
                             <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
@@ -287,7 +287,7 @@ const NotificationsPage = () => {
                               <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
                             )}
                           </div>
-                          {/* Mobile: Mark as read button */}
+                          {/* Mark as read button */}
                           {notification.status !== 'read' && (
                             <button
                               onClick={() => markAsRead(notification.id)}
@@ -324,13 +324,6 @@ const NotificationsPage = () => {
                           <div className="text-xs sm:text-sm text-gray-500">
                             {formatDate(notification.created_at)}
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-                          {notification.time_ago}
                         </div>
                       </div>
                     </div>
