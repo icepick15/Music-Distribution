@@ -224,64 +224,100 @@
             <div class="payment-success">
                 <div class="payment-icon">💸</div>
                 <h2>Payment Successful, {{ user.first_name|default:user.username }}!</h2>
-                <p>Great news! Your latest royalty payment has been processed and is on its way to your account.</p>
+                <p>Great news! Your payment for {{ context_data.description|default:"your subscription" }} has been processed successfully.</p>
             </div>
             
             <div class="payment-card">
                 <div class="amount-display">
-                    <span class="currency-symbol">$</span>
-                    <span class="amount">{{ context_data.amount|default:"125.67" }}</span>
+                    <span class="currency-symbol">₦</span>
+                    <span class="amount">{{ context_data.amount|default:"0.00" }}</span>
                 </div>
                 
                 <div class="payment-details">
                     <div class="detail-row">
-                        <span class="detail-label">Payment Period</span>
-                        <span class="detail-value">{{ context_data.payment_period|default:"August 2025" }}</span>
+                        <span class="detail-label">Subscription Type</span>
+                        <span class="detail-value">{{ context_data.description|default:"Subscription" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Date</span>
+                        <span class="detail-value">{{ context_data.payment_date|default:"Today" }}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Transaction ID</span>
-                        <span class="detail-value">{{ context_data.transaction_id|default:"TXN-2025-08-001234" }}</span>
+                        <span class="detail-value">{{ context_data.reference|default:context_data.transaction_id|default:"N/A" }}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Payment Method</span>
-                        <span class="detail-value">{{ context_data.payment_method|default:"Bank Transfer" }}</span>
+                        <span class="detail-value">{{ context_data.payment_method|default:"Paystack" }}</span>
                     </div>
+                    {% if context_data.subscription_type == 'yearly' %}
                     <div class="detail-row">
-                        <span class="detail-label">Processing Time</span>
-                        <span class="detail-value">1-3 Business Days</span>
+                        <span class="detail-label">Valid Until</span>
+                        <span class="detail-value">{{ context_data.subscription_valid_until|default:"1 Year" }}</span>
                     </div>
+                    {% elif context_data.subscription_type == 'pay_per_song' %}
+                    <div class="detail-row">
+                        <span class="detail-label">Upload Credits</span>
+                        <span class="detail-value">{{ context_data.credits_remaining|default:"1" }} credit{{ context_data.credits_remaining|default:1|pluralize }}</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             
             <div class="royalty-breakdown">
-                <h3>📊 Royalty Breakdown</h3>
+                <h3>🎯 Subscription Details</h3>
                 
+                {% if context_data.subscription_type == 'yearly' %}
                 <div class="royalty-item">
-                    <span><span class="platform-icon">🎵</span>Spotify</span>
-                    <span>$67.89</span>
+                    <span><span class="platform-icon">⭐</span>Plan Type</span>
+                    <span>Yearly Premium</span>
                 </div>
                 <div class="royalty-item">
-                    <span><span class="platform-icon">🍎</span>Apple Music</span>
-                    <span>$32.45</span>
+                    <span><span class="platform-icon">🚀</span>Upload Limit</span>
+                    <span>Unlimited</span>
                 </div>
                 <div class="royalty-item">
-                    <span><span class="platform-icon">▶️</span>YouTube Music</span>
-                    <span>$18.23</span>
+                    <span><span class="platform-icon">📊</span>Royalty Share</span>
+                    <span>Keep 95%</span>
                 </div>
                 <div class="royalty-item">
-                    <span><span class="platform-icon">🎧</span>Other Platforms</span>
-                    <span>$7.10</span>
+                    <span><span class="platform-icon">⏱️</span>Processing</span>
+                    <span>Priority (1-2 days)</span>
+                </div>
+                {% elif context_data.subscription_type == 'pay_per_song' %}
+                <div class="royalty-item">
+                    <span><span class="platform-icon">🎵</span>Plan Type</span>
+                    <span>Pay Per Song</span>
                 </div>
                 <div class="royalty-item">
-                    <span><strong>Total Earned</strong></span>
-                    <span><strong>${{ context_data.amount|default:"125.67" }}</strong></span>
+                    <span><span class="platform-icon">🎫</span>Credits Purchased</span>
+                    <span>{{ context_data.credits_remaining|default:"1" }} upload{{ context_data.credits_remaining|default:1|pluralize }}</span>
+                </div>
+                <div class="royalty-item">
+                    <span><span class="platform-icon">📊</span>Royalty Share</span>
+                    <span>Keep 90%</span>
+                </div>
+                <div class="royalty-item">
+                    <span><span class="platform-icon">⏱️</span>Processing</span>
+                    <span>Standard (3-5 days)</span>
+                </div>
+                {% endif %}
+                <div class="royalty-item">
+                    <span><strong>Amount Paid</strong></span>
+                    <span><strong>₦{{ context_data.amount|default:"0.00" }}</strong></span>
                 </div>
             </div>
             
             <div class="next-payment">
-                <h4>📅 Next Payment</h4>
-                <p>Your next royalty payment will be processed around:</p>
-                <div class="next-payment-date">{{ context_data.next_payment_date|default:"October 30, 2025" }}</div>
+                <h4>🎉 You're all set!</h4>
+                {% if context_data.subscription_type == 'yearly' %}
+                <p>Your subscription is valid until:</p>
+                <div class="next-payment-date">{{ context_data.subscription_valid_until|default:"1 Year from now" }}</div>
+                {% else %}
+                <p>Your upload credits are ready to use:</p>
+                <div class="next-payment-date">{{ context_data.credits_info|default:"1 upload credit" }}</div>
+                <p style="margin-top: 10px; font-size: 14px; color: #6b7280;">Credits never expire!</p>
+                {% endif %}
             </div>
             
             <div class="action-buttons">

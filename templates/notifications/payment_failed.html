@@ -299,26 +299,30 @@
             <div class="failure-message">
                 <div class="failure-icon">🚫</div>
                 <h2>Payment Failed, {{ user.first_name|default:user.username }}</h2>
-                <p>We were unable to process your royalty payment due to an issue with your payment information. Don't worry - your earnings are safe and we'll resolve this quickly.</p>
+                <p>We were unable to process your payment for {{ description|default:"your subscription" }}. Don't worry - we can help you resolve this quickly.</p>
             </div>
             
             <div class="payment-details">
                 <div class="amount-row">
                     <span class="amount-label">Payment Amount</span>
-                    <span class="amount-value">${{ context_data.amount|default:"125.67" }}</span>
+                    <span class="amount-value">₦{{ amount|default:"0.00" }}</span>
                 </div>
                 
                 <div class="detail-row">
-                    <span class="detail-label">Payment Period</span>
-                    <span class="detail-value">{{ context_data.payment_period|default:"August 2025" }}</span>
+                    <span class="detail-label">Subscription Type</span>
+                    <span class="detail-value">{{ description|default:"Subscription" }}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Attempted On</span>
-                    <span class="detail-value">{{ context_data.attempt_date|default:"September 30, 2025" }}</span>
+                    <span class="detail-value">{{ attempt_date|default:"Today" }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Transaction ID</span>
-                    <span class="detail-value">{{ context_data.transaction_id|default:"TXN-2025-08-001234" }}</span>
+                    <span class="detail-label">Transaction Reference</span>
+                    <span class="detail-value">{{ reference|default:transaction_id|default:"N/A" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Payment Method</span>
+                    <span class="detail-value">{{ payment_method|default:"Paystack" }}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Status</span>
@@ -329,24 +333,26 @@
             <div class="error-details">
                 <h3>Why did this happen?</h3>
                 
-                {% if context_data.failure_reasons %}
-                    {% for reason in context_data.failure_reasons %}
-                    <div class="error-item">
-                        <div class="error-title">{{ reason.title }}</div>
-                        <p class="error-description">{{ reason.description }}</p>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="error-item">
-                        <div class="error-title">Invalid Account Information</div>
-                        <p class="error-description">The bank account information on file appears to be outdated or incorrect.</p>
-                    </div>
-                    
-                    <div class="error-item">
-                        <div class="error-title">Account Verification Required</div>
-                        <p class="error-description">Your payment account may need additional verification before we can process payments.</p>
-                    </div>
-                {% endif %}
+                <div class="error-item">
+                    <div class="error-title">{{ failure_reason|default:"Payment Verification Failed" }}</div>
+                    <p class="error-description">
+                        {% if failure_reason %}
+                            {{ failure_reason }}
+                        {% else %}
+                            The payment could not be verified with Paystack. This could be due to insufficient funds, card restrictions, or network issues during payment processing.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="error-item">
+                    <div class="error-title">Common Causes</div>
+                    <p class="error-description">
+                        • Insufficient funds in your account<br>
+                        • Card declined by your bank<br>
+                        • Network connection issues<br>
+                        • Payment gateway timeout
+                    </p>
+                </div>
             </div>
             
             <div class="resolution-steps">
@@ -386,35 +392,37 @@
             </div>
             
             <div class="retry-info">
-                <h4>🔄 Automatic Retry</h4>
-                <p>We'll automatically attempt to process this payment again on:</p>
-                <div class="retry-date">{{ context_data.retry_date|default:"October 7, 2025" }}</div>
-                <p style="font-size: 14px; color: #6b7280; margin: 0;">Make sure to update your payment information before this date.</p>
+                <h4>🔄 Try Again</h4>
+                <p>You can retry your payment anytime. We recommend:</p>
+                <div class="retry-date">Ensuring sufficient funds and trying again immediately</div>
+                <p style="font-size: 14px; color: #6b7280; margin: 10px 0 0 0;">
+                    If the issue persists, please contact your bank or try a different payment method.
+                </p>
             </div>
             
             <div class="action-buttons">
-                <a href="{{ frontend_url }}/settings/payments" class="btn btn-primary">Update Payment Info</a>
-                <a href="{{ frontend_url }}/dashboard/payments" class="btn btn-secondary">Payment History</a>
-                <a href="{{ frontend_url }}/help/payments" class="btn btn-outline">Payment Help</a>
+                <a href="{{ frontend_url }}/subscription" class="btn btn-primary">Try Payment Again</a>
+                <a href="{{ frontend_url }}/dashboard" class="btn btn-secondary">Go to Dashboard</a>
+                <a href="mailto:{{ support_email }}" class="btn btn-outline">Contact Support</a>
             </div>
             
             <div class="support-box">
                 <h4>🤝 Need Help?</h4>
-                <p>Our payment specialists are available to help resolve any issues with your account. Don't let payment problems stop your music career!</p>
-                <a href="mailto:{{ support_email }}" class="btn btn-secondary" style="margin-top: 15px;">Contact Payment Support</a>
+                <p>Our support team is available to help resolve any payment issues. Don't let this stop your music journey!</p>
+                <a href="mailto:{{ support_email }}" class="btn btn-secondary" style="margin-top: 15px;">Contact Support Team</a>
             </div>
         </div>
         
         <div class="footer">
-            <p>💪 Don't worry - payment issues happen and we'll get this sorted out quickly. Your earnings are secure!</p>
+            <p>💪 Don't worry - payment issues are common and can usually be resolved quickly. Try again when ready!</p>
             <div class="footer-links">
                 <a href="{{ frontend_url }}/dashboard">Dashboard</a>
-                <a href="{{ frontend_url }}/settings">Account Settings</a>
-                <a href="{{ frontend_url }}/help/payments">Payment FAQ</a>
+                <a href="{{ frontend_url }}/subscription">Subscription Plans</a>
+                <a href="{{ frontend_url }}/help">Help Center</a>
                 <a href="mailto:{{ support_email }}">Support</a>
             </div>
             <p style="margin-top: 20px; font-size: 12px;">
-                Your earnings remain in your account until payment issues are resolved.
+                Transaction Reference: {{ reference|default:transaction_id|default:"N/A" }}
             </p>
         </div>
     </div>

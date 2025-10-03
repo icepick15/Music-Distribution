@@ -22,24 +22,16 @@ const SubscriptionPage = () => {
   const [loadingPlan, setLoadingPlan] = useState(null); // Which plan is loading: 'pay_per_song' | 'yearly' | null
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successDetails, setSuccessDetails] = useState(null);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelDetails, setCancelDetails] = useState(null);
   const [showManualVerify, setShowManualVerify] = useState(false);
   
   // Refs for tracking payment state
   const pendingPaymentRef = useRef(null); // Stores { reference, plan } when payment is initiated
   const verificationTimerRef = useRef(null);
   const verifyingRef = useRef(false);
-  const paymentInitiatedRef = useRef(false); // Tracks if user actually clicked pay button
 
   // Subscription data
   const subscriptionType = subscription?.subscription_type || 'free';
   const songCredits = subscription?.remaining_credits || 0;
-
-  // Debug: Log cancel modal state changes
-  useEffect(() => {
-    console.log('🎭 Cancel Modal State:', { showCancelModal, cancelDetails });
-  }, [showCancelModal, cancelDetails]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -56,11 +48,12 @@ const SubscriptionPage = () => {
       try {
         const response = await apiCall('/payments/verify-pending/', { method: 'POST' });
         if (response && response.verified_count > 0) {
+          console.log(`Auto-verified ${response.verified_count} pending payment(s)`);
           await Promise.all([fetchSubscription(), triggerDataRefresh()]);
           toast.success(`${response.verified_count} pending payment(s) verified!`);
         }
       } catch (error) {
-        // Silent fail - not critical
+        console.error('Auto-check failed:', error);
       }
     };
     
@@ -74,7 +67,6 @@ const SubscriptionPage = () => {
     setLoadingPlan(plan);
     setShowManualVerify(false);
     pendingPaymentRef.current = null;
-    paymentInitiatedRef.current = false;
 
     try {
       // Get pricing
@@ -114,81 +106,36 @@ const SubscriptionPage = () => {
       }
 
       // Open Paystack payment modal
-      console.log('🚀 Setting up Paystack with reference:', paymentData.reference);
-      
-      // Store reference for callbacks
-      const paymentRef = paymentData.reference;
-      const paymentPlan = plan;
-      
       const handler = window.PaystackPop.setup({
         key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         email: userEmail,
         amount: paymentData.amount * 100, // Convert to kobo
         currency: 'NGN',
-        ref: paymentRef,
-        callback: function(response) {
-          console.log('✅ Paystack callback fired!', response);
-          paymentInitiatedRef.current = true;
-          // Payment completed - start verification immediately
-          startPaymentVerification(paymentRef, paymentPlan);
+        ref: paymentData.reference,
+        onSuccess: (transaction) => {
+          console.log('✅ Paystack payment successful:', transaction);
+          // Start verification immediately
+          startPaymentVerification(paymentData.reference, plan);
         },
-        onClose: function() {
-          console.log('🚪 Paystack onClose fired!');
-          console.log('📦 pendingPaymentRef:', pendingPaymentRef.current);
-          console.log('🔒 verifyingRef:', verifyingRef.current);
-          
-          // Modal closed - check if payment was completed or cancelled
-          // Wait 2 seconds to give callback a chance to fire first
-          setTimeout(() => {
-            console.log('⏰ onClose timeout fired - checking status...');
-            console.log('📦 pendingPaymentRef now:', pendingPaymentRef.current);
-            console.log('🔒 verifyingRef now:', verifyingRef.current);
-            
-            if (paymentInitiatedRef.current) {
-              // User clicked pay button - either verifying or should poll
-              console.log('✅ Payment was initiated by user');
-              if (!verifyingRef.current && pendingPaymentRef.current) {
-                console.log('🔄 Starting background polling (payment may be pending)...');
-                toast('Checking payment status...', {
-                  duration: 3000,
-                  icon: '🔍'
-                });
-                startBackgroundPolling(paymentRef, paymentPlan);
-              } else {
-                console.log('⏭️ Verification already in progress');
-              }
-            } else {
-              // User closed modal without clicking pay - show cancellation
-              console.log('❌ Payment cancelled - user never clicked pay button');
-              setCancelDetails({
-                planName: paymentPlan === 'yearly' ? 'Yearly Premium' : 'Pay Per Song',
-                plan: paymentPlan
-              });
-              setShowCancelModal(true);
-              setLoadingPlan(null);
-            }
-          }, 2000);
+        onClose: () => {
+          console.log('Paystack modal closed');
+          // Check if we have a pending payment to verify
+          if (pendingPaymentRef.current) {
+            console.log('Payment was initiated, showing manual verify option');
+            setShowManualVerify(true);
+          } else {
+            // User cancelled before completing payment
+            console.log('Payment cancelled by user');
+            setLoadingPlan(null);
+            toast.error('Payment cancelled');
+          }
         }
       });
 
-      console.log('📱 Opening Paystack iframe...');
       handler.openIframe();
-      console.log('✅ Iframe opened - waiting for user to complete payment...');
-      
-      // FALLBACK: Start delayed polling in case callbacks don't fire
-      // This ensures we always check for payment completion
-      console.log('⏰ Setting up fallback polling (starts in 30s)...');
-      setTimeout(() => {
-        console.log('🔍 Fallback check: Is payment still pending?');
-        if (pendingPaymentRef.current && !verifyingRef.current) {
-          console.log('⚠️ Callbacks did not fire - starting fallback polling');
-          startBackgroundPolling(paymentRef, paymentPlan);
-        } else {
-          console.log('✅ Payment already being processed - fallback not needed');
-        }
-      }, 30000); // Wait 30 seconds before starting fallback
 
     } catch (error) {
+      console.error('Payment initiation error:', error);
       toast.error(`Payment failed: ${error.message || 'Unknown error'}`);
       setLoadingPlan(null);
       pendingPaymentRef.current = null;
@@ -196,200 +143,45 @@ const SubscriptionPage = () => {
   };
 
   /**
-   * Start background polling - only called after modal closes
+   * Start payment verification with retries
    */
-  const startBackgroundPolling = (reference, plan) => {
-    console.log('🔄 startBackgroundPolling called with reference:', reference);
-    
-    let pollCount = 0;
-    const maxPolls = 60; // Poll for up to 5 minutes
-    
-    const pollInterval = setInterval(async () => {
-      pollCount++;
-      console.log(`🔍 Background poll attempt ${pollCount}/${maxPolls}`);
-      
-      // Stop if payment is no longer pending
-      if (!pendingPaymentRef.current) {
-        console.log('⏹️ Stopping poll - payment no longer pending');
-        clearInterval(pollInterval);
-        return;
-      }
-      
-      // Stop if max attempts reached
-      if (pollCount >= maxPolls) {
-        console.log('⚠️ Max poll attempts reached - showing manual verify');
-        clearInterval(pollInterval);
-        
-        // Show cancellation modal instead of manual verify if no payment detected
-        setCancelDetails({
-          planName: plan === 'yearly' ? 'Yearly Premium' : 'Pay Per Song',
-          plan: plan,
-          wasPolling: true
-        });
-        setShowCancelModal(true);
-        setLoadingPlan(null);
-        return;
-      }
-      
-      try {
-        const response = await apiCall('/payments/verify-pending/', {
-          method: 'POST'
-        });
-        
-        console.log(`📊 Poll ${pollCount} response:`, response);
-        
-        if (response && response.verified_count > 0) {
-          console.log('✅ Payment verified successfully via polling!');
-          clearInterval(pollInterval);
-          
-          // Refresh subscription data
-          await Promise.all([fetchSubscription(), triggerDataRefresh()]);
-          
-          // Get updated subscription info
-          const songCredits = response.song_credits || subscription?.remaining_credits || 0;
-          
-          // Prepare success response
-          const successResponse = {
-            status: 'success',
-            subscription_type: plan,
-            remaining_credits: songCredits,
-            song_credits: songCredits
-          };
-          
-          await handleVerificationSuccess(successResponse, plan);
-        } else {
-          console.log(`⏳ Poll ${pollCount}: Payment still processing...`);
-        }
-      } catch (error) {
-        console.log(`⚠️ Poll ${pollCount} error (will retry):`, error.message);
-        // Continue polling silently - errors expected while processing
-      }
-    }, 10000); // Poll every 10 seconds (reduced frequency)
-    
-    console.log('✅ Background polling interval started');
-    // Store interval ref for cleanup
-    verificationTimerRef.current = pollInterval;
-  };
-
-  /**
-   * Start payment verification with polling and retries
-   * Called immediately from onSuccess callback
-   */
-  const startPaymentVerification = async (reference, plan, retryCount = 0) => {
-    const maxRetries = 5;
-    const retryDelay = 3000; // 3 seconds between retries
-    
-    console.log(`🔄 startPaymentVerification attempt ${retryCount + 1}/${maxRetries}`);
-    
-    if (verifyingRef.current && retryCount === 0) {
-      console.log('⏭️ Already verifying - skipping');
+  const startPaymentVerification = async (reference, plan) => {
+    if (verifyingRef.current) {
+      console.log('Verification already in progress');
       return;
     }
 
     verifyingRef.current = true;
-    console.log('🔒 Set verifyingRef = true');
+    console.log('🔄 Starting payment verification for:', reference);
 
-    // Show manual verification button immediately as backup
-    if (retryCount === 0) {
-      setShowManualVerify(true);
-      toast('Payment processing... You can use manual verification if it takes too long.', {
-        duration: 5000,
-        icon: 'ℹ️'
-      });
-    }
-    
     try {
-      // Wait even longer for Paystack to fully process
-      const waitTime = retryCount === 0 ? 10000 : 5000; // Wait 10s first, then 5s
-      console.log(`⏳ Waiting ${waitTime}ms for Paystack to process...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
+      // Wait a moment for backend to process
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      console.log('📞 Calling verification API (verify-pending)...');
-      // Use verify-pending endpoint which is more reliable
-      const response = await apiCall('/payments/verify-pending/', {
-        method: 'POST'
+      // Call verification endpoint
+      const response = await apiCall('/payments/verify/', {
+        method: 'POST',
+        body: JSON.stringify({ reference })
       });
 
-      console.log('📬 Verification response:', response);
-      
-      // Check if any payments were verified using verify-pending response structure
-      if (response && response.verified_count > 0) {
-        // Payment was verified successfully
-        console.log('✅ Payment verified successfully via verify-pending!');
-        
-        // Refresh subscription data first to get the actual credits
-        await Promise.all([fetchSubscription(), triggerDataRefresh()]);
-        
-        // Wait a moment for subscription context to update
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Get updated subscription info from the subscription context
-        const updatedSubscription = subscription;
-        const songCredits = updatedSubscription?.remaining_credits || 0;
-        
-        console.log('📊 Updated subscription credits:', songCredits);
-        
-        // Prepare success response
-        const successResponse = {
-          status: 'success',
-          subscription_type: plan,
-          remaining_credits: songCredits,
-          song_credits: songCredits
-        };
-        
-        await handleVerificationSuccess(successResponse, plan);
-        return; // Success - exit
-      } else if (response && response.verified_count === 0) {
-        // Payment still pending - retry if we have retries left
-        console.log('⏳ Payment still pending (verified_count = 0)...');
-        if (retryCount < maxRetries - 1) {
-          console.log(`🔄 Will retry in ${retryDelay}ms...`);
-          verifyingRef.current = false; // Reset for retry
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
-          
-          // Check if payment is still pending before retrying
-          if (pendingPaymentRef.current) {
-            return startPaymentVerification(reference, plan, retryCount + 1);
-          } else {
-            console.log('⏹️ Payment cleared - stopping retries');
-            return;
-          }
-        } else {
-          // Max retries reached - show manual verification option
-          console.log('⚠️ Max retries reached - showing manual verification');
-          setShowManualVerify(true);
-          toast('Payment processing taking longer than expected. Please use manual verification.', {
-            duration: 8000,
-            icon: 'ℹ️'
-          });
-          // Also start background polling as backup
-          startBackgroundPolling(reference, plan);
-        }
+      console.log('Verification response:', response);
+
+      if (response?.status === 'success') {
+        // Payment verified successfully
+        await handleVerificationSuccess(response, plan);
+      } else {
+        // Verification failed
+        console.error('Verification failed:', response);
+        setShowManualVerify(true);
+        toast.error('Auto-verification failed. Please use manual verification button below.');
       }
 
     } catch (error) {
-      console.log(`❌ Verification error (attempt ${retryCount + 1}):`, error.message);
-      // Retry on network errors
-      if (retryCount < maxRetries - 1 && pendingPaymentRef.current) {
-        console.log(`🔄 Retrying after error in ${retryDelay}ms...`);
-        verifyingRef.current = false;
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-        return startPaymentVerification(reference, plan, retryCount + 1);
-      } else {
-        // Show manual verification and start background polling
-        console.log('⚠️ All retries failed - showing manual verification');
-        setShowManualVerify(true);
-        toast('Please use manual verification to complete your payment.', { 
-          duration: 8000,
-          icon: 'ℹ️'
-        });
-        startBackgroundPolling(reference, plan);
-      }
+      console.error('Verification error:', error);
+      setShowManualVerify(true);
+      toast.error('Verification failed. Please use manual verification button below.');
     } finally {
-      if (retryCount === maxRetries - 1 || !pendingPaymentRef.current) {
-        console.log('🔓 Setting verifyingRef = false');
-        verifyingRef.current = false;
-      }
+      verifyingRef.current = false;
     }
   };
 
@@ -397,42 +189,24 @@ const SubscriptionPage = () => {
    * Handle successful verification
    */
   const handleVerificationSuccess = async (response, plan) => {
-    // Clear polling interval if it exists
-    if (verificationTimerRef.current) {
-      clearInterval(verificationTimerRef.current);
-      verificationTimerRef.current = null;
-    }
+    console.log('✅ Payment verified successfully!');
     
     // Clear pending payment
     pendingPaymentRef.current = null;
     
-    // Refresh subscription data and wait for it to update
+    // Refresh subscription data
     await Promise.all([fetchSubscription(), triggerDataRefresh()]);
     
-    // Make a fresh API call to get the ACTUAL current subscription data
-    let songCredits = 0;
+    // Prepare success details
+    const songCredits = response.remaining_credits || response.song_credits;
     let planName, benefits;
     
-    try {
-      const freshSubData = await apiCall('/payments/subscription/');
-      songCredits = freshSubData?.remaining_credits || 0;
-      
-      console.log('💳 Fresh subscription data from API:', freshSubData);
-      console.log('💳 Actual credits:', songCredits);
-    } catch (error) {
-      console.error('Failed to fetch fresh subscription:', error);
-      // Fallback to context data
-      songCredits = subscription?.remaining_credits || 0;
-      console.log('💳 Credits from context (fallback):', songCredits);
-    }
-    
-    // Prepare display text
     if (plan === 'yearly') {
       planName = 'Yearly Premium';
       benefits = 'Unlimited uploads for one year';
     } else {
       planName = 'Pay Per Song';
-      benefits = `${songCredits} upload credit${songCredits !== 1 ? 's' : ''}`;
+      benefits = `${songCredits} upload credit${songCredits > 1 ? 's' : ''}`;
     }
     
     // Show success
@@ -442,7 +216,6 @@ const SubscriptionPage = () => {
       subscriptionType: response.subscription_type,
       songCredits
     });
-    
     setShowSuccessModal(true);
     setLoadingPlan(null);
     setShowManualVerify(false);
@@ -462,38 +235,21 @@ const SubscriptionPage = () => {
     const { reference, plan } = pendingPaymentRef.current;
     
     toast.loading('Verifying payment...', { id: 'manual-verify' });
-    console.log('🔍 Manual verification triggered for:', reference);
     
     try {
       const response = await apiCall('/payments/verify-pending/', {
         method: 'POST'
       });
 
-      console.log('📬 Manual verification response:', response);
-
       if (response && response.verified_count > 0) {
-        console.log('✅ Manual verification successful!');
         toast.success('Payment verified!', { id: 'manual-verify' });
-        
-        // Refresh subscription data
         await Promise.all([fetchSubscription(), triggerDataRefresh()]);
         
-        // Make a fresh API call to get the ACTUAL current credits
-        let songCredits = 0;
-        try {
-          const freshSubData = await apiCall('/payments/subscription/');
-          songCredits = freshSubData?.remaining_credits || 0;
-          console.log('💳 Manual verify - Fresh credits from API:', songCredits);
-        } catch (error) {
-          console.error('Failed to fetch fresh subscription:', error);
-          songCredits = subscription?.remaining_credits || 0;
-          console.log('💳 Manual verify - Credits from context (fallback):', songCredits);
-        }
-        
         // Show success modal
+        const songCredits = response.song_credits || subscription?.remaining_credits || 0;
         setSuccessDetails({
           planName: plan === 'yearly' ? 'Yearly Premium' : 'Pay Per Song',
-          benefits: plan === 'yearly' ? 'Unlimited uploads for one year' : `${songCredits} upload credit${songCredits !== 1 ? 's' : ''}`,
+          benefits: plan === 'yearly' ? 'Unlimited uploads for one year' : `${songCredits} upload credits`,
           subscriptionType: plan,
           songCredits
         });
@@ -502,11 +258,10 @@ const SubscriptionPage = () => {
         setShowManualVerify(false);
         pendingPaymentRef.current = null;
       } else {
-        console.log('⚠️ No pending payments found');
         toast.error('No pending payments found to verify', { id: 'manual-verify' });
       }
     } catch (error) {
-      console.log('❌ Manual verification error:', error);
+      console.error('Manual verification error:', error);
       toast.error('Verification failed. Please contact support.', { id: 'manual-verify' });
     }
   };
@@ -550,24 +305,6 @@ const SubscriptionPage = () => {
         type: 'success'
       }
     });
-  };
-
-  /**
-   * Cancellation modal handlers
-   */
-  const handleCancelModalClose = () => {
-    setShowCancelModal(false);
-    setCancelDetails(null);
-  };
-
-  const handleRetryPayment = () => {
-    setShowCancelModal(false);
-    const plan = cancelDetails?.plan;
-    setCancelDetails(null);
-    if (plan) {
-      // Retry the same plan
-      setTimeout(() => handleUpgrade(plan), 300);
-    }
   };
 
   // Plan definitions
@@ -743,31 +480,29 @@ const SubscriptionPage = () => {
 
           {/* Manual Verification Section */}
           {showManualVerify && (
-            <div className="mb-8 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-400 rounded-xl p-6 max-w-2xl mx-auto shadow-lg animate-pulse">
+            <div className="mb-8 bg-yellow-50 border-2 border-yellow-400 rounded-xl p-6 max-w-2xl mx-auto">
               <div className="text-center">
-                <h3 className="text-2xl font-bold text-green-900 mb-3">
-                  ✅ Payment Completed!
+                <h3 className="text-xl font-bold text-yellow-900 mb-2">
+                  ⚠️ Payment Verification Needed
                 </h3>
-                <p className="text-green-800 mb-4 text-lg">
-                  We've confirmed your payment with Paystack. Click the button below to activate your subscription immediately.
+                <p className="text-yellow-800 mb-4">
+                  We detected your payment but auto-verification is taking longer than expected. 
+                  Please click below to manually verify your payment.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button
                     onClick={handleManualVerification}
-                    className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition-all transform hover:scale-105 shadow-xl"
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                   >
-                    � Activate Subscription Now
+                    🔍 Verify Payment Now
                   </button>
                   <button
                     onClick={handleForceRefresh}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-4 rounded-lg font-semibold transition-colors"
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                   >
                     🔄 Refresh Account
                   </button>
                 </div>
-                <p className="text-gray-600 text-sm mt-4">
-                  Auto-verification is still running in the background...
-                </p>
               </div>
             </div>
           )}
@@ -884,71 +619,6 @@ const SubscriptionPage = () => {
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-medium transition-colors"
               >
                 Go to Dashboard
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Cancellation Modal */}
-      {showCancelModal && cancelDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 relative animate-in fade-in duration-300">
-            {/* Cancel Icon */}
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-            </div>
-            
-            {/* Cancel Message */}
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Payment Canceled
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {cancelDetails.wasPolling 
-                  ? "We couldn't verify your payment. If you completed the payment, you can try manual verification. Otherwise, feel free to try again."
-                  : "You closed the payment window. No charges were made to your account."
-                }
-              </p>
-              
-              {/* Plan Details */}
-              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4 mb-6">
-                <h4 className="font-semibold text-orange-900 mb-1">
-                  {cancelDetails.planName}
-                </h4>
-                <p className="text-orange-700 text-sm">
-                  You can restart the payment process whenever you're ready
-                </p>
-              </div>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              {cancelDetails.wasPolling && (
-                <button
-                  onClick={handleManualVerification}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-xl font-semibold transition-colors flex items-center justify-center"
-                >
-                  <CheckIcon className="w-5 h-5 mr-2" />
-                  Try Manual Verification
-                </button>
-              )}
-              <button
-                onClick={handleRetryPayment}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-xl font-semibold transition-colors flex items-center justify-center"
-              >
-                <CreditCardIcon className="w-5 h-5 mr-2" />
-                Retry Payment
-              </button>
-              <button
-                onClick={handleCancelModalClose}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-medium transition-colors"
-              >
-                Maybe Later
               </button>
             </div>
           </div>

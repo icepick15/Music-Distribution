@@ -79,7 +79,12 @@ const apiCall = async (endpoint, options = {}) => {
         || text
         || 'An error occurred';
 
-      console.error(`API call failed for ${endpoint}:`, { status: response.status, body: data || text });
+      console.error(`API call failed for ${endpoint}:`, { 
+        status: response.status, 
+        body: data || text,
+        fullData: data,
+        message: message
+      });
       throw new Error(message);
     }
 

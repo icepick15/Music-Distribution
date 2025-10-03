@@ -171,65 +171,128 @@ def handle_song_status_notification(song, old_status, new_status):
             )
 
 
+@receiver(pre_save, sender='payments.Transaction')
+def track_payment_status_change(sender, instance, **kwargs):
+    """
+    Track the old status before saving to detect status changes
+    """
+    if instance.pk:
+        try:
+            old_instance = sender.objects.get(pk=instance.pk)
+            instance._old_status = old_instance.status
+        except sender.DoesNotExist:
+            instance._old_status = None
+    else:
+        instance._old_status = None
+
+
 @receiver(post_save, sender='payments.Transaction')
 def handle_payment_notification(sender, instance, created, **kwargs):
     """
     Handle payment-related notifications
     """
     if created:
-        # New payment created
-        NotificationService.send_user_notification(
-            user=instance.user,
-            notification_type_name='payment_received',
-            title="Payment Received",
-            message=f"We've received your payment of ₦{instance.amount} for {instance.description or instance.get_transaction_type_display()}.",
-            context_data={
-                'amount': str(instance.amount),
-                'currency': instance.currency,
-                'description': instance.description or instance.get_transaction_type_display(),
-                'transaction_id': str(instance.id),
-            },
-            priority='high'
-        )
+        # New payment initiated - DO NOT send success notification yet
+        # Just log the payment initiation
+        logger.info(f"Payment initiated: {instance.id}, reference: {instance.paystack_reference}")
     
     else:
-        # Check if payment status changed
-        try:
-            old_instance = sender.objects.get(pk=instance.pk)
-            if old_instance.status != instance.status:
-                handle_payment_status_notification(instance, old_instance.status, instance.status)
-        except sender.DoesNotExist:
-            pass
-
-
-def handle_payment_status_notification(transaction, old_status, new_status):
-    """
-    Send notifications for payment status changes
-    """
-    if new_status == 'success':
-        NotificationService.send_user_notification(
-            user=transaction.user,
-            notification_type_name='payment_completed',
-            title="Payment Confirmed",
-            message=f"Your payment of ₦{transaction.amount} has been confirmed. Thank you!",
-            context_data={
-                'amount': str(transaction.amount),
-                'currency': transaction.currency,
-                'transaction_id': str(transaction.id),
-            },
-            priority='high'
-        )
-    
-    elif new_status == 'failed':
-        NotificationService.send_user_notification(
-            user=transaction.user,
-            notification_type_name='payment_failed',
-            title="Payment Failed",
-            message=f"Your payment of ₦{transaction.amount} could not be processed. Please try again or contact support.",
-            context_data={
-                'amount': str(transaction.amount),
-                'currency': transaction.currency,
-                'transaction_id': str(transaction.id),
-            },
-            priority='urgent'
-        )
+        # Check if status actually changed
+        old_status = getattr(instance, '_old_status', None)
+        
+        # Only send notification if status changed from non-success to success, or to failed
+        if old_status != instance.status:
+            if instance.status == 'success' and old_status != 'success':
+                # Get subscription details for payment notification
+                from django.utils import timezone
+                from datetime import timedelta
+                from src.apps.payments.models import Subscription
+                
+                # Get the actual Subscription object, not the user.subscription CharField
+                subscription_obj = instance.subscription  # From transaction's ForeignKey
+                if not subscription_obj:
+                    # Try to get active subscription from user
+                    subscription_obj = Subscription.objects.filter(
+                        user=instance.user,
+                        status='active'
+                    ).first()
+                
+                subscription_type = subscription_obj.subscription_type if subscription_obj else 'free'
+                remaining_credits = subscription_obj.remaining_credits if subscription_obj else 0
+                end_date = subscription_obj.end_date if subscription_obj else None
+                
+                # Format subscription details
+                if subscription_type == 'yearly':
+                    description_text = "Yearly Premium Subscription - Unlimited uploads"
+                    credits_info = "Unlimited uploads"
+                elif subscription_type == 'pay_per_song':
+                    description_text = f"Pay Per Song - {remaining_credits} credit{'s' if remaining_credits != 1 else ''}"
+                    credits_info = f"{remaining_credits} upload credit{'s' if remaining_credits != 1 else ''}"
+                else:
+                    description_text = instance.description or instance.get_transaction_type_display()
+                    credits_info = "N/A"
+                
+                # Wrap email notification in try/except so template errors don't break payment processing
+                try:
+                    # Wrap data in context_data object to match template expectations
+                    payment_context = {
+                        'amount': f"{instance.amount:,.2f}",
+                        'currency': instance.currency,
+                        'description': description_text,
+                        'transaction_id': str(instance.id),
+                        'reference': instance.paystack_reference,
+                        'payment_date': timezone.now().strftime('%B %d, %Y'),
+                        'payment_time': timezone.now().strftime('%I:%M %p'),
+                        'subscription_type': subscription_type,
+                        'credits_remaining': remaining_credits,
+                        'credits_info': credits_info,
+                        'subscription_end_date': end_date.strftime('%B %d, %Y') if end_date else 'N/A',
+                        'subscription_valid_until': end_date.strftime('%B %d, %Y') if end_date else 'No expiry',
+                        'payment_method': 'Paystack',
+                        'transaction_type': instance.get_transaction_type_display(),
+                    }
+                    
+                    NotificationService.send_user_notification(
+                        user=instance.user,
+                        notification_type_name='payment_received',
+                        title="Payment Successful! 🎉",
+                        message=f"Your payment of ₦{instance.amount:,.2f} for {description_text} has been confirmed.",
+                        context_data={'context_data': payment_context},  # Wrap in context_data key
+                        priority='high'
+                    )
+                except Exception as e:
+                    # Log but don't fail payment processing
+                    logger.error(f"Failed to send payment success email: {str(e)}")
+                    pass
+            elif instance.status == 'failed' and old_status != 'failed':
+                # Get payment failure details
+                from django.utils import timezone
+                from datetime import timedelta
+                
+                # Calculate retry date (7 days from now)
+                retry_date = timezone.now() + timedelta(days=7)
+                
+                # Get failure reason from payment metadata if available
+                failure_reason = "Payment verification failed"
+                if hasattr(instance, 'metadata') and instance.metadata:
+                    failure_reason = instance.metadata.get('failure_reason', failure_reason)
+                
+                NotificationService.send_user_notification(
+                    user=instance.user,
+                    notification_type_name='payment_failed',
+                    title="Payment Failed ❌",
+                    message=f"Your payment of ₦{instance.amount:,.2f} could not be processed. {failure_reason}. Please try again or contact support.",
+                    context_data={
+                        'amount': f"{instance.amount:,.2f}",
+                        'currency': instance.currency,
+                        'transaction_id': str(instance.id),
+                        'reference': instance.paystack_reference,
+                        'attempt_date': timezone.now().strftime('%B %d, %Y'),
+                        'retry_date': retry_date.strftime('%B %d, %Y'),
+                        'failure_reason': failure_reason,
+                        'payment_method': 'Paystack',
+                        'transaction_type': instance.get_transaction_type_display(),
+                        'description': instance.description or 'Subscription payment',
+                    },
+                    priority='urgent'
+                )

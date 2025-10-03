@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useLocation, NavLink } from 'react-router-dom';
+import SubscriptionGuard from './SubscriptionGuard';
 import { 
   HomeIcon,
   MusicalNoteIcon,
@@ -14,7 +15,8 @@ import {
   CreditCardIcon,
   BellIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline';
 
 const SidebarButton = ({ to, icon: Icon, children, status, badge, disabled = false, onClick }) => {
@@ -98,13 +100,13 @@ const SidebarButton = ({ to, icon: Icon, children, status, badge, disabled = fal
 
 const EnhancedSidebar = () => {
   const { user } = useAuth();
-  const { canUpload, remainingUploads } = useSubscription();
+  const { canUpload, remainingUploads, subscription } = useSubscription();
 
   if (!user) return null;
 
-  const subscriptionType = user.publicMetadata?.subscriptionType || 'free';
-  const songCredits = user.publicMetadata?.songCredits || 0;
-  const yearlyFeatures = user.publicMetadata?.yearlyFeatures || false;
+  const subscriptionType = subscription?.subscription_type || user.publicMetadata?.subscriptionType || 'free';
+  const songCredits = subscription?.remaining_credits || user.publicMetadata?.songCredits || 0;
+  const yearlyFeatures = subscriptionType === 'yearly';
   const uploadCount = user.publicMetadata?.uploadCount || 0;
   const role = user.publicMetadata?.role || user.role;
 
@@ -176,25 +178,31 @@ const EnhancedSidebar = () => {
             Analytics
           </SidebarButton>
 
-          {/* Create Album - Coming Soon */}
-          <SidebarButton 
-            icon={PlusIcon}
-            status="locked"
-            badge={{ type: 'soon', text: 'Coming Soon' }}
-            onClick={() => showLockedTooltip('Album Creation')}
-          >
-            Create Album
-          </SidebarButton>
+          {/* Create Album/EP - Yearly Premium Feature */}
+          <SubscriptionGuard requiredPlan="yearly" featureName="Album & EP Creation">
+            <SidebarButton 
+              to={yearlyFeatures ? "/dashboard/albums/create" : undefined}
+              icon={PlusIcon}
+              status={yearlyFeatures ? undefined : "locked"}
+              badge={yearlyFeatures ? { type: 'pro', text: 'Premium' } : { type: 'pro', text: 'Premium Only' }}
+              onClick={yearlyFeatures ? undefined : () => {}}
+            >
+              Create Album/EP
+            </SidebarButton>
+          </SubscriptionGuard>
 
-          {/* Schedule Release - Coming Soon */}
-          <SidebarButton 
-            icon={CalendarIcon}
-            status="locked"
-            badge={{ type: 'soon', text: 'Coming Soon' }}
-            onClick={() => showLockedTooltip('Release Scheduling')}
-          >
-            Schedule Release
-          </SidebarButton>
+          {/* Schedule Release - Yearly Premium Feature */}
+          <SubscriptionGuard requiredPlan="yearly" featureName="Release Scheduling">
+            <SidebarButton 
+              to={yearlyFeatures ? "/dashboard/music/release?schedule=true" : undefined}
+              icon={CalendarIcon}
+              status={yearlyFeatures ? undefined : "locked"}
+              badge={yearlyFeatures ? { type: 'pro', text: 'Premium' } : { type: 'pro', text: 'Premium Only' }}
+              onClick={yearlyFeatures ? undefined : () => {}}
+            >
+              Schedule Release
+            </SidebarButton>
+          </SubscriptionGuard>
 
           {/* Sales & Revenue - Coming Soon */}
           <SidebarButton 
@@ -221,6 +229,14 @@ const EnhancedSidebar = () => {
             }
           >
             Subscription
+          </SidebarButton>
+
+          <SidebarButton 
+            to="/dashboard/referrals" 
+            icon={UserGroupIcon}
+            badge={{ type: 'new', text: 'NEW' }}
+          >
+            Referrals
           </SidebarButton>
 
           <SidebarButton to="/dashboard/settings" icon={CogIcon}>

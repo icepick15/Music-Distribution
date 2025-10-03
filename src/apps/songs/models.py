@@ -7,19 +7,30 @@ import os
 
 User = get_user_model()
 
+# Import Album models
+from .album_models import Album, AlbumTrack
+
 
 def audio_upload_path(instance, filename):
-    """Generate upload path for audio files"""
+    """Generate upload path for audio files
+    
+    For local development: saves to src/media/audio/{user_id}/{uuid}.ext
+    For production: will integrate with Amazon S3
+    """
     ext = filename.split('.')[-1]
     filename = f"{uuid.uuid4()}.{ext}"
-    return os.path.join('src', 'media', 'audio', str(instance.artist.id), filename)
+    return os.path.join('audio', str(instance.artist.id), filename)
 
 
 def cover_upload_path(instance, filename):
-    """Generate upload path for cover images"""
+    """Generate upload path for cover images
+    
+    For local development: saves to src/media/covers/{user_id}/{uuid}.ext
+    For production: will integrate with Amazon S3
+    """
     ext = filename.split('.')[-1]
     filename = f"cover_{uuid.uuid4()}.{ext}"
-    return os.path.join('src', 'media', 'covers', str(instance.artist.id), filename)
+    return os.path.join('covers', str(instance.artist.id), filename)
 
 
 class Genre(models.Model):

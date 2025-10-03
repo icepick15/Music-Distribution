@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from .models import Song, Genre, Platform, SongDistribution
+from .album_models import Album, AlbumTrack
 
 
 @admin.register(Song)
@@ -170,3 +171,149 @@ class SongDistributionAdmin(admin.ModelAdmin):
             return format_html('<a href="{}" target="_blank">View on Platform</a>', obj.platform_url)
         return "No link"
     get_platform_link.short_description = 'Platform Link'
+
+
+@admin.register(Album)
+class AlbumAdmin(admin.ModelAdmin):
+    """Album/EP administration"""
+    
+    list_display = [
+        'title', 'artist', 'release_type', 'get_status_badge', 
+        'tracks_uploaded', 'number_of_tracks', 'get_completion', 
+        'release_date', 'get_days_until_release', 'created_at'
+    ]
+    list_filter = [
+        'status', 'release_type', 'is_explicit', 
+        'created_at', 'release_date', 'genre'
+    ]
+    search_fields = ['title', 'artist__email', 'artist__first_name', 'artist__last_name', 'genre']
+    ordering = ['-created_at']
+    readonly_fields = [
+        'id', 'tracks_uploaded', 'created_at', 'updated_at',
+        'submitted_at', 'approved_at', 'distributed_at',
+        'get_completion_percentage', 'get_days_until_release'
+    ]
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('id', 'title', 'artist', 'release_type', 'status')
+        }),
+        ('Content', {
+            'fields': ('description', 'genre', 'cover_art', 'cover_url', 'is_explicit')
+        }),
+        ('Track Management', {
+            'fields': ('number_of_tracks', 'tracks_uploaded', 'get_completion_percentage')
+        }),
+        ('Release Information', {
+            'fields': ('release_date', 'get_days_until_release')
+        }),
+        ('Admin Notifications', {
+            'fields': ('admin_notified_scheduled', 'admin_notified_days'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at', 'submitted_at', 'approved_at', 'distributed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_status_badge(self, obj):
+        """Display status with color coding"""
+        colors = {
+            'draft': 'gray',
+            'in_progress': 'blue',
+            'pending': 'orange',
+            'scheduled': 'purple',
+            'approved': 'green',
+            'distributed': 'darkgreen',
+            'rejected': 'red',
+        }
+        color = colors.get(obj.status, 'gray')
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{}</span>',
+            color, obj.status.upper()
+        )
+    get_status_badge.short_description = 'Status'
+    
+    def get_completion(self, obj):
+        """Display completion progress"""
+        percentage = obj.completion_percentage
+        color = 'green' if percentage == 100 else 'orange' if percentage >= 50 else 'red'
+        return format_html(
+            '<div style="background-color: #f0f0f0; border-radius: 10px; overflow: hidden; width: 100px;">'
+            '<div style="background-color: {}; height: 20px; width: {}%; text-align: center; color: white; font-size: 11px; line-height: 20px;">{:.0f}%</div>'
+            '</div>',
+            color, percentage, percentage
+        )
+    get_completion.short_description = 'Progress'
+    
+    def get_completion_percentage(self, obj):
+        """Get completion percentage as text"""
+        return f"{obj.completion_percentage:.1f}%"
+    get_completion_percentage.short_description = 'Completion'
+    
+    def get_days_until_release(self, obj):
+        """Display days until scheduled release"""
+        if not obj.is_scheduled:
+            return "Not scheduled"
+        days = obj.days_until_release
+        if days == 0:
+            return format_html('<strong style="color: red;">Releases Today!</strong>')
+        elif days == 1:
+            return format_html('<strong style="color: orange;">Releases Tomorrow</strong>')
+        elif days <= 7:
+            return format_html('<strong style="color: orange;">In {} days</strong>', days)
+        else:
+            return f"In {days} days"
+    get_days_until_release.short_description = 'Days Until Release'
+    
+    actions = ['approve_albums', 'mark_as_distributed', 'send_reminder_notification']
+    
+    def approve_albums(self, request, queryset):
+        """Approve selected albums"""
+        updated = queryset.filter(status='pending').update(
+            status='approved',
+            approved_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} album(s) approved successfully.')
+    approve_albums.short_description = 'Approve selected albums'
+    
+    def mark_as_distributed(self, request, queryset):
+        """Mark albums as distributed"""
+        updated = queryset.filter(status='approved').update(
+            status='distributed',
+            distributed_at=timezone.now()
+        )
+        self.message_user(request, f'{updated} album(s) marked as distributed.')
+    mark_as_distributed.short_description = 'Mark as distributed'
+    
+    def send_reminder_notification(self, request, queryset):
+        """Send reminder notification to admin"""
+        from apps.notifications.services import NotificationService
+        
+        for album in queryset:
+            if album.is_scheduled:
+                try:
+                    NotificationService.send_admin_notification(
+                        title=f"Manual Reminder: {album.title}",
+                        message=f"Reminder for {album.title} - Releases in {album.days_until_release} days",
+                        notification_type='manual_reminder',
+                        context_data={'album_id': str(album.id), 'album_title': album.title},
+                        send_email=True,
+                        send_websocket=True
+                    )
+                except Exception as e:
+                    self.message_user(request, f"Error sending notification for {album.title}: {e}", level='error')
+        
+        self.message_user(request, f'Sent reminders for {queryset.count()} album(s).')
+    send_reminder_notification.short_description = 'Send reminder notification'
+
+
+@admin.register(AlbumTrack)
+class AlbumTrackAdmin(admin.ModelAdmin):
+    """Album track management"""
+    
+    list_display = ['album', 'track_number', 'song', 'created_at']
+    list_filter = ['album__release_type', 'created_at']
+    search_fields = ['album__title', 'song__title']
+    ordering = ['album', 'track_number']

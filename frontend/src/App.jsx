@@ -37,14 +37,15 @@ import SubscriptionPage from './pages/SubscriptionPage';
 import PaymentMethodsPage from './pages/PaymentMethodsPage';
 import Settings from './pages/Settings';
 import NotificationsPage from './pages/NotificationsPage';
-import CreateAlbum from './pages/CreateAlbum';
-import ScheduleRelease from './pages/ScheduleRelease';
+import CreateAlbumPage from './features/albums/CreateAlbumPage';
 import ReleaseForm from './features/releases/ReleaseForm';
 import ReleaseSuccess from "@/features/releases/ReleaseConfirmation";
 import TicketsPage from './features/tickets/TicketsPage';
 import ArtistPage from './pages/ArtistPage';
 import StreamDashboard from './pages/StreamDashboard';
 import NotificationTest from './pages/NotificationTest';
+import ReferralDashboard from './pages/dashboard/ReferralDashboard';
+import ReferralLanding from './pages/ReferralLanding';
 
 // Admin Pages
 import AdminDashboard from './pages/AdminDashboard';
@@ -136,6 +137,9 @@ const AppRoutes = () => {
           </>
         } />
 
+        {/* Referral Landing - Public */}
+        <Route path="/join/:code" element={<ReferralLanding />} />
+
         {/* Auth Routes - Standalone */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -157,16 +161,6 @@ const AppRoutes = () => {
         <Route path="/upload" element={
           <ProtectedRoute requireAuth={true}>
             <Upload />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard/create-album" element={
-          <ProtectedRoute requireAuth={true}>
-            <CreateAlbum />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard/schedule" element={
-          <ProtectedRoute requireAuth={true}>
-            <ScheduleRelease />
           </ProtectedRoute>
         } />
         <Route path="/dashboard/analytics" element={
@@ -196,6 +190,11 @@ const AppRoutes = () => {
             </DashboardLayout>
           </ProtectedRoute>
         } />
+        <Route path="/dashboard/albums/create" element={
+          <ProtectedRoute requireAuth={true}>
+            <CreateAlbumPage />
+          </ProtectedRoute>
+        } />
         <Route path="/dashboard/music/release" element={
           <ProtectedRoute requireAuth={true}>
             <ReleaseForm />
@@ -223,6 +222,11 @@ const AppRoutes = () => {
         <Route path="/dashboard/sales" element={
           <ProtectedRoute requireAuth={true}>
             <StreamDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard/referrals" element={
+          <ProtectedRoute requireAuth={true}>
+            <ReferralDashboard />
           </ProtectedRoute>
         } />
 

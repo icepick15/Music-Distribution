@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'src.apps.admin_dashboard',
     'src.apps.support',
     'src.apps.realtime_notifications',
+    'src.apps.referrals',
     # 'src.apps.artists',
     # 'src.apps.analytics',
     # 'src.apps.admin_panel',
@@ -326,7 +327,7 @@ else:
     
     # Legacy settings
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
+    MEDIA_ROOT = BASE_DIR / 'src' / 'media'
 
 # File upload limits
 FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB
@@ -458,4 +459,7 @@ DEFAULT_FROM_NAME = config('DEFAULT_FROM_NAME', default='Music Distribution Plat
 
 # Admin notification settings
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='iamicepick@gmail.com')
+
+# Frontend URL for referral links
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
 NOTIFICATION_EMAILS = config('NOTIFICATION_EMAILS', default=ADMIN_EMAIL).split(',')

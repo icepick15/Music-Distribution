@@ -35,6 +35,7 @@ urlpatterns = [
     path('api/payments/', include('src.apps.payments.urls')),
     path('api/notifications/', include('src.apps.notifications.urls')),
     path('api/support/', include('src.apps.support.urls')),
+    path('api/referrals/', include('src.apps.referrals.urls')),
     path('', include('src.apps.realtime_notifications.urls')),  # Real-time notifications
     path('', include('src.apps.admin_dashboard.urls')),  # Admin dashboard
     # path('api/artists/', include('src.apps.artists.urls')),

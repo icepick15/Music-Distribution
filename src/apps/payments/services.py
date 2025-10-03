@@ -212,9 +212,22 @@ class PaymentService:
     def _process_subscription_payment(self, transaction: Transaction, payment_data: Dict) -> Tuple[bool, Dict]:
         """Process subscription payment"""
         try:
-            subscription_type = transaction.metadata.get('subscription_type')
+            # Handle metadata - it might be a string or dict
+            import json
+            metadata = transaction.metadata
+            if isinstance(metadata, str):
+                try:
+                    metadata = json.loads(metadata)
+                except json.JSONDecodeError:
+                    logger.error(f"Failed to parse metadata JSON: {metadata}")
+                    metadata = {}
+            elif not isinstance(metadata, dict):
+                metadata = {}
+            
+            subscription_type = metadata.get('subscription_type')
             
             if not subscription_type:
+                logger.error(f"Subscription type not found in metadata: {metadata}")
                 return False, {'error': 'Subscription type not found'}
             
             # Calculate end date based on subscription type
@@ -287,7 +300,8 @@ class PaymentService:
                 'message': 'Subscription activated successfully',
                 'subscription_id': str(subscription.id),
                 'subscription_type': subscription_type,
-                'song_credits': song_credits
+                'song_credits': song_credits,
+                'remaining_credits': subscription.remaining_credits  # Add remaining_credits for frontend
             }
             
         except Exception as e:
@@ -297,7 +311,19 @@ class PaymentService:
     def _process_credit_purchase(self, transaction: Transaction, payment_data: Dict) -> Tuple[bool, Dict]:
         """Process credit purchase"""
         try:
-            song_credits = transaction.metadata.get('song_credits', 0)
+            # Handle metadata - it might be a string or dict
+            import json
+            metadata = transaction.metadata
+            if isinstance(metadata, str):
+                try:
+                    metadata = json.loads(metadata)
+                except json.JSONDecodeError:
+                    logger.error(f"Failed to parse metadata JSON: {metadata}")
+                    metadata = {}
+            elif not isinstance(metadata, dict):
+                metadata = {}
+            
+            song_credits = metadata.get('song_credits', 0)
             
             # Get user's current pay-per-song subscription or create one
             subscription = Subscription.objects.filter(

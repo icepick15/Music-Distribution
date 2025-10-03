@@ -286,53 +286,43 @@ class AutoVerifyPendingPaymentsView(APIView):
     
     def post(self, request):
         try:
-            # Use database transaction to prevent concurrent modifications
-            with db_transaction.atomic():
-                # Get all pending transactions for this user with SELECT FOR UPDATE to prevent race conditions
-                pending_transactions = Transaction.objects.select_for_update().filter(
-                    user=request.user,
-                    status='pending'
-                ).order_by('-initiated_at')[:5]  # Only check last 5 pending
-                
-                if not pending_transactions:
-                    return Response({
-                        'verified_count': 0,
-                        'message': 'No pending payments found'
-                    })
-                
-                logger.info(f"Found {pending_transactions.count()} pending transactions for user {request.user.id}")
-                
-                service = PaymentService()
-                verified_count = 0
-                
-                for transaction in pending_transactions:
-                    logger.info(f"Attempting to verify transaction: {transaction.paystack_reference}")
-                    
-                    # Skip if this transaction is already being processed
-                    if transaction.status != 'pending':
-                        continue
-                    
-                    # Try to verify each pending transaction
-                    success, result = service.handle_payment_success(transaction.paystack_reference)
-                    
-                    if success:
-                        verified_count += 1
-                        logger.info(f"Successfully verified transaction: {transaction.paystack_reference}")
-                    else:
-                        logger.warning(f"Failed to verify transaction {transaction.paystack_reference}: {result}")
-                
-                if verified_count > 0:
-                    # Return success response with details
-                    return Response({
-                        'verified_count': verified_count,
-                        'message': f'Successfully verified {verified_count} payment(s)',
-                        'status': 'success'
-                    })
-                else:
-                    return Response({
-                        'verified_count': 0,
-                        'message': 'No payments could be verified at this time'
-                    })
+            # Get the most recent pending transaction for this user
+            # Process only ONE at a time to avoid SQLite database locking issues
+            pending_transaction = Transaction.objects.filter(
+                user=request.user,
+                status='pending'
+            ).order_by('-initiated_at').first()
+            
+            if not pending_transaction:
+                return Response({
+                    'verified_count': 0,
+                    'message': 'No pending payments found'
+                })
+            
+            logger.info(f"Found pending transaction for user {request.user.id}: {pending_transaction.paystack_reference}")
+            
+            service = PaymentService()
+            verified_count = 0
+            
+            logger.info(f"Attempting to verify transaction: {pending_transaction.paystack_reference}")
+            
+            # Try to verify the pending transaction
+            success, result = service.handle_payment_success(pending_transaction.paystack_reference)
+            
+            if success:
+                verified_count = 1
+                logger.info(f"Successfully verified transaction: {pending_transaction.paystack_reference}")
+                return Response({
+                    'verified_count': verified_count,
+                    'message': f'Successfully verified {verified_count} payment(s)',
+                    'status': 'success'
+                })
+            else:
+                logger.warning(f"Failed to verify transaction {pending_transaction.paystack_reference}: {result}")
+                return Response({
+                    'verified_count': 0,
+                    'message': 'No payments could be verified at this time'
+                })
                     
         except Exception as e:
             logger.error(f"Error in auto-verify pending payments: {str(e)}")

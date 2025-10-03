@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   EyeIcon, 
@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Register = () => {
+  const location = useLocation();
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -30,8 +31,17 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [step, setStep] = useState(1); // 1: Form, 2: Success
+  const [referralCode, setReferralCode] = useState(null);
   const navigate = useNavigate();
   const { signUp, loading } = useAuth();
+
+  useEffect(() => {
+    // Get referral code from location state (from referral landing page)
+    const code = location.state?.referralCode;
+    if (code) {
+      setReferralCode(code);
+    }
+  }, [location]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -100,6 +110,26 @@ const Register = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const linkReferralToUser = async (token) => {
+    const trackingCookie = localStorage.getItem('referral_tracking');
+    if (!trackingCookie) return;
+
+    try {
+      await fetch('http://127.0.0.1:8000/api/referrals/link/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ tracking_cookie: trackingCookie })
+      });
+      // Clear tracking cookie after successful linking
+      localStorage.removeItem('referral_tracking');
+    } catch (error) {
+      console.error('Error linking referral:', error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -117,6 +147,12 @@ const Register = () => {
       });
       
       if (result.success) {
+        // Link referral if tracking cookie exists
+        const token = localStorage.getItem('token');
+        if (token) {
+          await linkReferralToUser(token);
+        }
+        
         setStep(2);
         // Redirect to dashboard after 3 seconds
         setTimeout(() => {
