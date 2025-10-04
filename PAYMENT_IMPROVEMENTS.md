@@ -3,9 +3,11 @@
 ## Issues Fixed
 
 ### 1. Polling Timeout Issue 🔄
+
 **Problem:** Users who stayed on the Paystack payment page longer than 60 seconds would not have their payment detected automatically.
 
 **Solution:**
+
 - Extended polling duration from **1 minute to 5 minutes** (60 polls instead of 12)
 - Poll interval: Every 5 seconds for up to 5 minutes
 - Added helpful toast message when max attempts reached
@@ -16,15 +18,18 @@
   - Switch between payment methods on Paystack
 
 **Files Modified:**
+
 - `frontend/src/pages/SubscriptionPage.jsx`
 
 ### 2. Email Templates with Real Data 📧
+
 **Problem:** Payment success/failure emails were showing placeholder/generic data instead of actual transaction details.
 
 **Solution:**
 Updated notification signals to send comprehensive real-time data:
 
 #### Payment Success Email Data:
+
 - ✅ Real amount (formatted with commas: ₦5,000.00)
 - ✅ Subscription type (Yearly Premium / Pay Per Song)
 - ✅ Upload credits remaining
@@ -36,6 +41,7 @@ Updated notification signals to send comprehensive real-time data:
 - ✅ Processing time (Standard 3-5 days / Priority 1-2 days)
 
 #### Payment Failed Email Data:
+
 - ✅ Real amount attempted
 - ✅ Failure reason (from Paystack)
 - ✅ Transaction reference
@@ -45,6 +51,7 @@ Updated notification signals to send comprehensive real-time data:
 - ✅ Direct links to retry payment
 
 **Files Modified:**
+
 - `src/apps/notifications/signals.py`
 - `templates/notifications/payment_received.html`
 - `templates/notifications/payment_failed.html`
@@ -54,6 +61,7 @@ Updated notification signals to send comprehensive real-time data:
 ### Backend Changes (signals.py)
 
 #### Success Notification:
+
 ```python
 # Now includes:
 - subscription_type: 'yearly' | 'pay_per_song' | 'free'
@@ -68,6 +76,7 @@ Updated notification signals to send comprehensive real-time data:
 ```
 
 #### Failed Notification:
+
 ```python
 # Now includes:
 - failure_reason: From payment metadata or default message
@@ -80,6 +89,7 @@ Updated notification signals to send comprehensive real-time data:
 ### Frontend Changes (SubscriptionPage.jsx)
 
 #### Polling Configuration:
+
 ```javascript
 // Before:
 const maxPolls = 12; // 1 minute total
@@ -95,12 +105,15 @@ const maxPolls = 60; // 5 minutes total
 ## Email Template Improvements
 
 ### Payment Success Email
+
 **Before:**
+
 - Generic placeholder amounts ($125.67)
 - Fake royalty breakdowns
 - Next payment dates (not applicable to subscriptions)
 
 **After:**
+
 - Real subscription amount in Naira (₦5,000.00 or ₦39,900.00)
 - Actual subscription details:
   - For Yearly: "Unlimited uploads until [date]"
@@ -109,12 +122,15 @@ const maxPolls = 60; // 5 minutes total
 - Real transaction reference
 
 ### Payment Failed Email
+
 **Before:**
+
 - Generic bank account error messages
 - Irrelevant payment period information
 - Automatic retry dates (we don't auto-retry)
 
 **After:**
+
 - Actual Paystack failure reason
 - Real transaction reference
 - Common causes specific to card payments
@@ -124,16 +140,18 @@ const maxPolls = 60; // 5 minutes total
 ## Testing Checklist
 
 ### Test Scenarios:
+
 1. ✅ **Fast Payment** (< 30 seconds)
    - User completes payment quickly
    - Should detect within 5-10 seconds
-   
 2. ✅ **Slow Payment** (1-3 minutes)
+
    - User takes time entering card details
    - Should detect within 5 minutes
    - Polling continues throughout
 
 3. ✅ **Very Slow Payment** (> 5 minutes)
+
    - User abandons and comes back later
    - Manual verification button appears
    - User can manually verify payment
@@ -142,7 +160,6 @@ const maxPolls = 60; // 5 minutes total
    - Check subscription type is correct
    - Verify credits/expiry date shown
    - Confirm amount matches payment
-   
 5. ✅ **Email Content - Failure**
    - Check failure reason is displayed
    - Verify transaction reference shown
@@ -151,12 +168,14 @@ const maxPolls = 60; // 5 minutes total
 ## Benefits
 
 ### User Experience:
+
 - ✅ No more stuck "Processing..." buttons
 - ✅ Works even if user is slow on payment page
 - ✅ Emails contain actual useful information
 - ✅ Clear next steps in failure emails
 
 ### Technical:
+
 - ✅ More robust payment detection
 - ✅ Better debugging with real transaction data
 - ✅ Reduced support requests (emails explain what happened)
@@ -165,12 +184,14 @@ const maxPolls = 60; // 5 minutes total
 ## Next Steps (Optional Future Enhancements)
 
 1. **Payment Webhook** (Recommended)
+
    - Set up Paystack webhook endpoint
    - Get instant notification when payment succeeds
    - Eliminate need for polling entirely
    - More reliable than frontend polling
 
 2. **Email Customization**
+
    - Add user's subscription start/end dates
    - Include list of platforms they can distribute to
    - Add quick links to upload first song

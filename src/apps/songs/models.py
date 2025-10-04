@@ -101,7 +101,7 @@ class Song(models.Model):
     release_date = models.DateField(blank=True, null=True)
     
     # Status & Analytics
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     total_streams = models.PositiveIntegerField(default=0)
     total_downloads = models.PositiveIntegerField(default=0)
     total_revenue = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)

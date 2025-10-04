@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'django_filters',
     'channels',
     
-    # Local apps - start with just users and songs
+    # Local apps
     'src.apps.users',
     'src.apps.songs',
     'src.apps.payments',
@@ -61,12 +61,12 @@ INSTALLED_APPS = [
     'src.apps.support',
     'src.apps.realtime_notifications',
     'src.apps.referrals',
+    'src.apps.blog',
     # 'src.apps.artists',
     # 'src.apps.analytics',
     # 'src.apps.admin_panel',
 ]
 
-# Cloudinary support removed; using S3 or local storage only
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -81,8 +81,8 @@ MIDDLEWARE = [
 
 # Authentication backends
 AUTHENTICATION_BACKENDS = [
-    'src.apps.users.backends.EmailBackend',  # Custom email/username authentication
-    'django.contrib.auth.backends.ModelBackend',  # Default Django backend
+    'src.apps.users.backends.EmailBackend',  
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'music_distribution_backend.urls'

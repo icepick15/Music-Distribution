@@ -33,7 +33,7 @@ const ReferralDashboard = () => {
 
   const fetchReferralData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch('http://127.0.0.1:8000/api/referrals/codes/my_code/', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -51,7 +51,7 @@ const ReferralDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch('http://127.0.0.1:8000/api/referrals/codes/stats/', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -71,7 +71,7 @@ const ReferralDashboard = () => {
 
   const fetchReferrals = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch('http://127.0.0.1:8000/api/referrals/codes/referrals/', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -89,7 +89,7 @@ const ReferralDashboard = () => {
 
   const fetchCredits = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('authToken');
       const response = await fetch('http://127.0.0.1:8000/api/referrals/credits/', {
         headers: {
           'Authorization': `Bearer ${token}`

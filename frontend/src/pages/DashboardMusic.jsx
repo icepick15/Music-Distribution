@@ -21,6 +21,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import DashboardLayout from '../components/DashboardLayout';
+import ReferralBanner from '../components/ReferralBanner';
 
 const DashboardMusic = () => {
   const navigate = useNavigate();
@@ -381,22 +382,26 @@ const DashboardMusic = () => {
                     ))}
                   </div>
                 ) : songs.length === 0 ? (
-                  <div className="text-center py-12">
-                    <MusicalNoteIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No releases yet</h3>
-                    <p className="text-gray-600 mb-6">Upload your first track to get started</p>
-                    <button 
-                      onClick={canUpload() ? () => navigate('/upload') : showUpgradeAlert}
-                      className={`inline-flex items-center px-6 py-3 rounded-xl transition-all duration-300 font-medium ${
-                        canUpload() 
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                      disabled={!canUpload()}
-                    >
-                      <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
-                      {canUpload() ? 'Upload Your First Track' : 'Get Plan to Upload'}
-                    </button>
+                  <div className="space-y-6">
+                    <div className="text-center py-12">
+                      <MusicalNoteIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No releases yet</h3>
+                      <p className="text-gray-600 mb-6">Upload your first track to get started</p>
+                      <button 
+                        onClick={canUpload() ? () => navigate('/upload') : showUpgradeAlert}
+                        className={`inline-flex items-center px-6 py-3 rounded-xl transition-all duration-300 font-medium ${
+                          canUpload() 
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                        disabled={!canUpload()}
+                      >
+                        <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+                        {canUpload() ? 'Upload Your First Track' : 'Get Plan to Upload'}
+                      </button>
+                    </div>
+                    {/* Referral Banner */}
+                    <ReferralBanner variant="minimal" />
                   </div>
                 ) : (
                   <div className="space-y-4">

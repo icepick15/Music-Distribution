@@ -4,208 +4,257 @@ import {
   MusicalNoteIcon,
   EnvelopeIcon,
   PhoneIcon,
-  MapPinIcon
+  MapPinIcon,
+  GiftIcon,
+  SparklesIcon,
+  ShieldCheckIcon,
+  BoltIcon
 } from '@heroicons/react/24/outline';
+import { 
+  FaFacebookF, 
+  FaTwitter, 
+  FaInstagram, 
+  FaLinkedinIn,
+  FaYoutube,
+  FaSpotify,
+  FaApple,
+  FaArrowUp
+} from 'react-icons/fa';
 
 const ModernFooter = () => {
   const location = useLocation();
   const isDashboardPage = location.pathname.startsWith('/dashboard');
+  const currentYear = new Date().getFullYear();
+
+  // Check if user is logged in (has auth token)
+  const isLoggedIn = !!localStorage.getItem('authToken');
   
-  const footerLinks = {
-    product: [
-      { name: 'Music Distribution', href: '/pricing' },
-      { name: 'Pricing', href: '/pricing' },
-      { name: 'Features', href: '/#features' }
-    ],
-    support: [
-      { name: 'Help Center', href: '/help' },
-      { name: 'Contact Us', href: '/contact' },
-      { name: 'FAQs', href: '/help#faq' }
-    ],
-    legal: [
-      { name: 'Privacy Policy', href: '/privacy' },
-      { name: 'Terms of Service', href: '/terms' },
-      { name: 'Cookie Policy', href: '/cookies' },
-      { name: 'DMCA', href: '/dmca' }
-    ],
-    company: [
-      { name: 'About Us', href: '/about' },
-      { name: 'Careers', href: '/careers' }
-    ]
+  // Determine referral link destination based on login status
+  const referralLink = isLoggedIn ? '/dashboard/referrals' : '/join';
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const socialLinks = [
-    { name: 'Twitter', href: '#', icon: '𝕏' },
-    { name: 'Facebook', href: '#', icon: '📘' },
-    { name: 'Instagram', href: '#', icon: '📷' },
-    { name: 'LinkedIn', href: '#', icon: '💼' },
-    { name: 'YouTube', href: '#', icon: '🎥' }
-  ];
-
   return (
-    <footer className={`bg-gray-900 text-white relative z-20 ${isDashboardPage ? 'lg:pl-64' : ''}`}>
-      {/* Main Footer */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          
-          {/* Company Info */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <Link to="/" className="flex items-center space-x-2 mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <MusicalNoteIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                MusicDist
-              </span>
-            </Link>
-            
-            <p className="text-gray-400 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
-              Empowering independent artists to reach global audiences through seamless music distribution to 150+ streaming platforms worldwide.
-            </p>
-
-            {/* Contact Info */}
-            <div className="space-y-2 sm:space-y-3">
-              <div className="flex items-center space-x-2 sm:space-x-3 text-gray-400 text-sm sm:text-base">
-                <EnvelopeIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span className="truncate">support@musicdist.com</span>
-              </div>
-              <div className="flex items-center space-x-2 sm:space-x-3 text-gray-400 text-sm sm:text-base">
-                <PhoneIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>+1 (555) 123-4567</span>
-              </div>
-              <div className="flex items-center space-x-2 sm:space-x-3 text-gray-400 text-sm sm:text-base">
-                <MapPinIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>Los Angeles, CA</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Links Sections */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:gap-8 sm:col-span-2 lg:col-span-3">
-            
-            {/* Product */}
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-6">Product</h3>
-              <ul className="space-y-2 sm:space-y-3">
-                {footerLinks.product.map((link, index) => (
-                  <li key={index}>
-                    <Link 
-                      to={link.href} 
-                      className="text-gray-400 hover:text-white transition-colors duration-200 text-sm sm:text-base"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-6">Support</h3>
-              <ul className="space-y-2 sm:space-y-3">
-                {footerLinks.support.map((link, index) => (
-                  <li key={index}>
-                    <Link 
-                      to={link.href} 
-                      className="text-gray-400 hover:text-white transition-colors duration-200 text-sm sm:text-base"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-6">Company</h3>
-              <ul className="space-y-2 sm:space-y-3">
-                {footerLinks.company.map((link, index) => (
-                  <li key={index}>
-                    <Link 
-                      to={link.href} 
-                      className="text-gray-400 hover:text-white transition-colors duration-200 text-sm sm:text-base"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-6">Legal</h3>
-              <ul className="space-y-2 sm:space-y-3">
-                {footerLinks.legal.map((link, index) => (
-                  <li key={index}>
-                    <Link 
-                      to={link.href} 
-                      className="text-gray-400 hover:text-white transition-colors duration-200 text-sm sm:text-base"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Newsletter Signup */}
-        <div className="mt-8 sm:mt-12 lg:mt-16 pt-6 sm:pt-8 border-t border-gray-800">
-          <div className="max-w-md mx-auto text-center lg:max-w-none lg:text-left">
-            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Stay updated with industry news</h3>
-            <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
-              Get the latest updates on music distribution, industry trends, and platform changes.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-              />
-              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
+    <footer className={`relative bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-black text-white overflow-hidden ${isDashboardPage ? 'lg:pl-64' : ''}`}>
+      {/* Animated background effects */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-            
-            {/* Copyright */}
-            <div className="text-gray-400 text-xs sm:text-sm order-2 sm:order-1">
-              © 2024 MusicDist. All rights reserved.
+      <div className="relative z-10 px-6 md:px-16 py-16">
+        {/* Scroll to Top Button */}
+        <button
+          onClick={scrollToTop}
+          className="absolute top-6 right-6 md:top-8 md:right-10 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-full shadow-2xl hover:shadow-purple-500/50 hover:scale-110 transition-all duration-300 z-50 group"
+          aria-label="Back to top"
+        >
+          <FaArrowUp className="group-hover:animate-bounce" />
+        </button>
+
+        <div className="max-w-7xl mx-auto">
+          {/* Top Section - Brand & Newsletter */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 mb-12">
+            {/* Brand Column */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center space-x-2 mb-4">
+                <MusicalNoteIcon className="h-8 w-8 text-purple-400" />
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Music Distribution
+                </h3>
+              </div>
+              <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                Your music, everywhere. Distribute your tracks to all major streaming platforms 
+                with ease. Professional music distribution made simple.
+              </p>
+              
+              {/* Trust Badges */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                <div className="flex items-center space-x-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                  <ShieldCheckIcon className="h-4 w-4 text-green-400" />
+                  <span className="text-xs text-gray-300">Secure Platform</span>
+                </div>
+                <div className="flex items-center space-x-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                  <BoltIcon className="h-4 w-4 text-yellow-400" />
+                  <span className="text-xs text-gray-300">Fast Distribution</span>
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="space-y-2 text-sm text-gray-400">
+                <div className="flex items-center space-x-2">
+                  <EnvelopeIcon className="h-4 w-4 text-purple-400" />
+                  <span>support@musicdist.com</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <PhoneIcon className="h-4 w-4 text-purple-400" />
+                  <span>+1 (555) 123-4567</span>
+                </div>
+              </div>
             </div>
 
-            {/* Social Links */}
-            <div className="flex items-center space-x-4 sm:space-x-6 order-1 sm:order-2">
-              {socialLinks.map((social, index) => (
-                <a
-                  key={index}
-                  href={social.href}
-                  className="text-gray-400 hover:text-white transition-colors duration-200 text-lg sm:text-xl"
-                  aria-label={social.name}
+            {/* Quick Links */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4 text-white">Get Started</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <Link to="/register" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Sign Up Free</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/login" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Login</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/pricing" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Pricing Plans</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Contact Us</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Services */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4 text-white">Services</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <Link to="/pricing" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Music Distribution</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/pricing" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Vevo Channel</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/pricing" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Music Promotion</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/pricing" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Analytics & Insights</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Resources & Referral */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4 text-white">Resources</h4>
+              <ul className="space-y-3 text-sm">
+                <li>
+                  <Link to="/blog" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Blog & Guides</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/help#faq" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">FAQ</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/terms" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Terms & Conditions</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/privacy" className="text-gray-400 hover:text-purple-400 transition flex items-center group">
+                    <span className="group-hover:translate-x-1 transition-transform">Privacy Policy</span>
+                  </Link>
+                </li>
+                <li className="pt-2 border-t border-gray-800">
+                  <Link to={referralLink} className="text-purple-400 hover:text-pink-400 transition flex items-center space-x-1 group font-medium">
+                    <GiftIcon className="h-4 w-4" />
+                    <span className="group-hover:translate-x-1 transition-transform">Referral Program</span>
+                    <SparklesIcon className="h-3 w-3 animate-pulse" />
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Streaming Platforms Section */}
+          <div className="border-t border-gray-800 pt-8 mb-8">
+            <p className="text-center text-sm text-gray-400 mb-4">Distribute to all major platforms:</p>
+            <div className="flex flex-wrap justify-center items-center gap-6 text-gray-500">
+              <FaSpotify className="text-2xl hover:text-green-500 transition-colors cursor-pointer" title="Spotify" />
+              <FaApple className="text-2xl hover:text-gray-300 transition-colors cursor-pointer" title="Apple Music" />
+              <FaYoutube className="text-2xl hover:text-red-500 transition-colors cursor-pointer" title="YouTube Music" />
+              <span className="text-sm font-semibold hover:text-purple-400 transition-colors cursor-pointer">Amazon Music</span>
+              <span className="text-sm font-semibold hover:text-orange-400 transition-colors cursor-pointer">SoundCloud</span>
+              <span className="text-sm font-semibold hover:text-blue-400 transition-colors cursor-pointer">Deezer</span>
+              <span className="text-sm font-semibold hover:text-pink-400 transition-colors cursor-pointer">Tidal</span>
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="border-t border-gray-800 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex flex-col md:flex-row items-center gap-4 text-xs text-gray-500">
+                <p>&copy; {currentYear} Music Distribution. All Rights Reserved</p>
+                <span className="hidden md:inline">•</span>
+                <p>Made with ❤️ for artists</p>
+              </div>
+
+              {/* Social Links */}
+              <div className="flex items-center space-x-4">
+                <a 
+                  href="https://facebook.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-white/5 hover:bg-purple-600 p-2.5 rounded-full transition-all hover:scale-110"
+                  aria-label="Facebook"
                 >
-                  {social.icon}
+                  <FaFacebookF className="text-sm" />
                 </a>
-              ))}
-            </div>
-
-            {/* Platform Stats */}
-            <div className="flex items-center space-x-3 sm:space-x-6 text-xs sm:text-sm text-gray-400 order-3">
-              <div>150+ Platforms</div>
-              <div>•</div>
-              <div className="hidden sm:inline">10K+ Artists</div>
-              <div className="hidden sm:inline">•</div>
-              <div className="hidden sm:inline">50M+ Streams</div>
-              <div className="sm:hidden">10K+ Artists</div>
+                <a 
+                  href="https://twitter.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-white/5 hover:bg-blue-500 p-2.5 rounded-full transition-all hover:scale-110"
+                  aria-label="Twitter"
+                >
+                  <FaTwitter className="text-sm" />
+                </a>
+                <a 
+                  href="https://instagram.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-white/5 hover:bg-pink-600 p-2.5 rounded-full transition-all hover:scale-110"
+                  aria-label="Instagram"
+                >
+                  <FaInstagram className="text-sm" />
+                </a>
+                <a 
+                  href="https://linkedin.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-white/5 hover:bg-blue-700 p-2.5 rounded-full transition-all hover:scale-110"
+                  aria-label="LinkedIn"
+                >
+                  <FaLinkedinIn className="text-sm" />
+                </a>
+                <a 
+                  href="https://youtube.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-white/5 hover:bg-red-600 p-2.5 rounded-full transition-all hover:scale-110"
+                  aria-label="YouTube"
+                >
+                  <FaYoutube className="text-sm" />
+                </a>
+              </div>
             </div>
           </div>
         </div>

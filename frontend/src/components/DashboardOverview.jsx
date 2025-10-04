@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import ReferralWidget from './ReferralWidget';
 import { 
   MusicalNoteIcon, 
   ChartBarIcon, 
@@ -502,6 +503,11 @@ const DashboardOverview = () => {
             <QuickAction key={index} {...action} />
           ))}
         </div>
+      </div>
+
+      {/* Referral Program Widget */}
+      <div className="mb-6 sm:mb-8">
+        <ReferralWidget />
       </div>
 
       {/* Recent Activity */}

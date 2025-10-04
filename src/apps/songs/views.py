@@ -209,7 +209,8 @@ def submit_for_review(request, song_id):
             'error': 'Song not found'
         }, status=status.HTTP_404_NOT_FOUND)
     
-    if song.status != 'draft':
+    # Allow submission from draft or pending status
+    if song.status not in ['draft', 'pending']:
         return Response({
             'error': f'Song is already {song.status}'
         }, status=status.HTTP_400_BAD_REQUEST)
@@ -228,7 +229,7 @@ def submit_for_review(request, song_id):
             'missing_fields': missing_fields
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    # Update song status
+    # Update song status and timestamp
     song.status = 'pending'
     song.submitted_at = timezone.now()
     song.save()

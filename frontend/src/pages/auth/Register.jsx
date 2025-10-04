@@ -148,7 +148,7 @@ const Register = () => {
       
       if (result.success) {
         // Link referral if tracking cookie exists
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken');
         if (token) {
           await linkReferralToUser(token);
         }

@@ -56,7 +56,7 @@ class SongAdmin(admin.ModelAdmin):
     ]
     
     # Custom actions for content moderation
-    actions = ['approve_songs', 'reject_songs', 'distribute_songs', 'reset_to_pending']
+    actions = ['approve_and_distribute', 'approve_songs', 'distribute_songs', 'reject_songs', 'reset_to_pending']
     
     def get_status_badge(self, obj):
         """Display status with color-coded badges"""
@@ -92,33 +92,68 @@ class SongAdmin(admin.ModelAdmin):
     # Admin actions
     def approve_songs(self, request, queryset):
         """Approve selected pending songs"""
-        updated = queryset.filter(status='pending').update(
+        pending_songs = queryset.filter(status='pending')
+        updated = pending_songs.update(
             status='approved',
             approved_at=timezone.now()
         )
-        self.message_user(request, f'{updated} songs approved successfully.')
-    approve_songs.short_description = "Approve selected songs"
+        if updated > 0:
+            self.message_user(request, f'✅ {updated} song(s) approved successfully.')
+        else:
+            skipped = queryset.exclude(status='pending').count()
+            self.message_user(request, f'⚠️ No pending songs in selection. {skipped} song(s) skipped (already approved, distributed, or rejected).', level='warning')
+    approve_songs.short_description = "✅ Approve selected songs (pending → approved)"
     
     def reject_songs(self, request, queryset):
         """Reject selected songs"""
-        updated = queryset.filter(status__in=['pending', 'approved']).update(status='rejected')
-        self.message_user(request, f'{updated} songs rejected.')
-    reject_songs.short_description = "Reject selected songs"
+        rejectable = queryset.filter(status__in=['pending', 'approved'])
+        updated = rejectable.update(status='rejected')
+        if updated > 0:
+            self.message_user(request, f'❌ {updated} song(s) rejected.')
+        else:
+            self.message_user(request, '⚠️ No rejectable songs selected. Only pending or approved songs can be rejected.', level='warning')
+    reject_songs.short_description = "❌ Reject selected songs"
     
     def distribute_songs(self, request, queryset):
         """Mark approved songs as distributed (live)"""
-        updated = queryset.filter(status='approved').update(
+        approved_songs = queryset.filter(status='approved')
+        updated = approved_songs.update(
             status='distributed',
             distributed_at=timezone.now()
         )
-        self.message_user(request, f'{updated} songs marked as distributed.')
-    distribute_songs.short_description = "Distribute approved songs"
+        if updated > 0:
+            self.message_user(request, f'🚀 {updated} song(s) marked as distributed and now live!')
+        else:
+            self.message_user(request, '⚠️ No approved songs were selected. Only songs with "Approved" status can be distributed. Please approve songs first.', level='warning')
+    distribute_songs.short_description = "🚀 Distribute approved songs (approved → distributed)"
+    
+    def approve_and_distribute(self, request, queryset):
+        """Approve and immediately distribute selected songs (one-step process)"""
+        # First, approve pending songs
+        pending_songs = queryset.filter(status='pending')
+        approved_count = pending_songs.update(
+            status='approved',
+            approved_at=timezone.now()
+        )
+        
+        # Then distribute all approved songs in the queryset (including newly approved)
+        approved_songs = queryset.filter(status='approved')
+        distributed_count = approved_songs.update(
+            status='distributed',
+            distributed_at=timezone.now()
+        )
+        
+        if distributed_count > 0:
+            self.message_user(request, f'✅🚀 {distributed_count} song(s) approved and distributed successfully!')
+        else:
+            self.message_user(request, '⚠️ No songs were distributed. Selected songs must be in "Pending" or "Approved" status.', level='warning')
+    approve_and_distribute.short_description = "⚡ Approve & Distribute (one-step)"
     
     def reset_to_pending(self, request, queryset):
         """Reset songs to pending review"""
         updated = queryset.update(status='pending', approved_at=None, distributed_at=None)
-        self.message_user(request, f'{updated} songs reset to pending.')
-    reset_to_pending.short_description = "Reset to pending review"
+        self.message_user(request, f'🔄 {updated} song(s) reset to pending review.')
+    reset_to_pending.short_description = "🔄 Reset to pending review"
 
 
 @admin.register(Genre)

@@ -7,18 +7,18 @@
 **Problem:** Pay-per-song users could select EP/Album/Compilation release types
 
 **Solution:**
+
 - ✅ Release type dropdown now **disabled** for pay-per-song users
 - ✅ Only shows "Single" option for pay-per-song
 - ✅ Shows all options (Single, EP, Album, Compilation) for yearly subscribers
 - ✅ Helpful hint message: "💡 Upgrade to Yearly Premium to upload EPs and Albums"
 
 **Implementation:**
+
 ```jsx
-<select
-  disabled={subscription?.subscription_type === 'pay_per_song'}
->
+<select disabled={subscription?.subscription_type === "pay_per_song"}>
   <option value="single">Single</option>
-  {subscription?.subscription_type === 'yearly' && (
+  {subscription?.subscription_type === "yearly" && (
     <>
       <option value="ep">EP</option>
       <option value="album">Album</option>
@@ -29,6 +29,7 @@
 ```
 
 **User Experience:**
+
 - Pay-per-song: Dropdown locked to "Single" with upgrade hint
 - Yearly Premium: Full access to all release types
 - Clear visual indication of premium features
@@ -40,12 +41,14 @@
 **Problem:** Genre dropdown was returning empty data `{}`
 
 **Solution:**
+
 - ✅ Created `populate_genres` management command
 - ✅ Populated database with **22 music genres**
 - ✅ Fixed empty state handling in genre dropdown
 - ✅ Better error messaging when genres unavailable
 
 **Genres Added:**
+
 1. Pop
 2. Hip Hop
 3. R&B
@@ -72,6 +75,7 @@
 **API Endpoint:** `GET /api/songs/genres/`
 
 **Response Format:**
+
 ```json
 [
   {
@@ -91,6 +95,7 @@
 **Problem:** `no such table: albums` error
 
 **Solution:**
+
 - ✅ Generated migrations for Album and AlbumTrack models
 - ✅ Applied migrations successfully
 - ✅ Created database indexes for performance:
@@ -99,6 +104,7 @@
   - `albums_status_127426_idx` - Status + Release date index
 
 **Tables Created:**
+
 - `albums` - Main album/EP table
 - `album_tracks` - Junction table linking songs to albums
 
@@ -107,18 +113,22 @@
 ## 🎨 UI Improvements
 
 ### **Release Type Dropdown**
+
 **Before:**
+
 ```
 Release Type: [Dropdown with all options]
 ```
 
 **After (Pay-Per-Song):**
+
 ```
 Release Type: [Locked to Single]
 💡 Upgrade to Yearly Premium to upload EPs and Albums
 ```
 
 **After (Yearly Premium):**
+
 ```
 Release Type: [All options available]
 - Single
@@ -128,12 +138,15 @@ Release Type: [All options available]
 ```
 
 ### **Genre Dropdown**
+
 **Before:**
+
 ```
 Genre: [Loading...] → [No genres available]
 ```
 
 **After:**
+
 ```
 Genre: [Select a genre]
 - Pop
@@ -150,16 +163,19 @@ Genre: [Select a genre]
 ### **Files Modified:**
 
 1. **frontend/src/pages/Upload.jsx**
+
    - Added subscription check for release type dropdown
    - Improved genre dropdown with empty state handling
    - Added upgrade hint for pay-per-song users
 
 2. **src/apps/songs/management/commands/populate_genres.py** (NEW)
+
    - Management command to populate/update genres
    - Idempotent (can run multiple times safely)
    - Provides detailed output with emoji indicators
 
-3. **src/apps/songs/migrations/0004_*.py** (NEW)
+3. **src/apps/songs/migrations/0004\_\*.py** (NEW)
+
    - Created Album model migration
    - Created AlbumTrack model migration
    - Added database indexes
@@ -173,6 +189,7 @@ Genre: [Select a genre]
 ## 🧪 Testing
 
 ### **Test Pay-Per-Song Restriction:**
+
 1. Login as pay-per-song user
 2. Navigate to `/upload`
 3. Go to Step 2
@@ -180,6 +197,7 @@ Genre: [Select a genre]
 5. See upgrade hint below dropdown
 
 ### **Test Yearly Premium Access:**
+
 1. Login as yearly subscriber
 2. Navigate to `/upload`
 3. Go to Step 2
@@ -187,6 +205,7 @@ Genre: [Select a genre]
 5. Can select EP, Album, Compilation
 
 ### **Test Genre Dropdown:**
+
 1. Navigate to `/upload`
 2. Go to Step 2
 3. Click genre dropdown
@@ -194,6 +213,7 @@ Genre: [Select a genre]
 5. Select a genre successfully
 
 ### **Test Album Integration:**
+
 1. Login as yearly subscriber
 2. Navigate to `/upload`
 3. Step 1: See album dropdown
@@ -224,12 +244,14 @@ SELECT * FROM album_tracks;
 ## 🚀 Next Steps
 
 1. **Test Upload Flow:**
+
    - Test single upload (both subscription types)
    - Test album upload (yearly only)
    - Verify credit consumption
    - Check genre selection
 
 2. **Monitor Logs:**
+
    - Check for any Genre API errors
    - Monitor Album API calls
    - Verify permission checks
@@ -244,6 +266,7 @@ SELECT * FROM album_tracks;
 ## 💡 Features Summary
 
 ### **What Pay-Per-Song Users Can Do:**
+
 - ✅ Upload singles only
 - ✅ Select from 22 genres
 - ✅ Use all metadata fields
@@ -252,6 +275,7 @@ SELECT * FROM album_tracks;
 - ❌ Cannot schedule releases
 
 ### **What Yearly Premium Users Can Do:**
+
 - ✅ Upload singles, EPs, albums, compilations
 - ✅ Create albums with multiple tracks
 - ✅ Schedule future releases
@@ -264,6 +288,7 @@ SELECT * FROM album_tracks;
 ## 🎉 Implementation Complete!
 
 All requested fixes have been implemented and tested:
+
 - ✅ Release type restriction for pay-per-song users
 - ✅ Genre API working with 22 genres
 - ✅ Album tables created and ready

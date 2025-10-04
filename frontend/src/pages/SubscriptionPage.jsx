@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import DashboardLayout from '../components/DashboardLayout';
+import ReferralPromoBar from '../components/ReferralPromoBar';
 import toast from 'react-hot-toast';
 import { 
   CreditCardIcon,
@@ -10,7 +11,9 @@ import {
   CheckIcon,
   ArrowUpTrayIcon,
   ClockIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  GiftIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 const SubscriptionPage = () => {
@@ -618,6 +621,9 @@ const SubscriptionPage = () => {
 
   return (
     <DashboardLayout>
+      {/* Referral Promo Bar - Only for non-subscribed users */}
+      {subscriptionType === 'free' && <ReferralPromoBar />}
+      
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
@@ -631,6 +637,32 @@ const SubscriptionPage = () => {
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
               From individual songs to unlimited releases. Choose the plan that fits your artistic vision and budget.
             </p>
+          </div>
+
+          {/* Referral Banner */}
+          <div className="mb-8 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-2xl p-6 shadow-xl">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-start space-x-4 text-white">
+                <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                  <GiftIcon className="h-8 w-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-1 flex items-center">
+                    Get Free Upload Credits!
+                    <SparklesIcon className="h-5 w-5 ml-2 animate-pulse" />
+                  </h3>
+                  <p className="text-purple-100 text-sm">
+                    Don't want to pay? Invite friends and earn free uploads! Get 1 free credit for every 2 friends who subscribe.
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/dashboard/referrals"
+                className="flex-shrink-0 bg-white text-purple-600 hover:text-purple-700 px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              >
+                Start Referring →
+              </Link>
+            </div>
           </div>
 
           {/* Current Status */}

@@ -6,6 +6,7 @@ Due to the file's size and complexity, here's what needs to be done to complete 
 
 1. **Added imports** for enhanced UI components (PlayIcon, PauseIcon, ArrowRightIcon, etc.)
 2. **Added state management** for:
+
    - Multi-step wizard (currentStep, totalSteps)
    - Album integration (albums, selectedAlbum)
    - Audio preview (audioRef, isPlaying, currentTime, duration, audioPreviewUrl)
@@ -13,12 +14,14 @@ Due to the file's size and complexity, here's what needs to be done to complete 
    - Upload progress (uploadProgress, uploadStatus)
 
 3. **Added functions** for:
+
    - Audio player controls (togglePlayPause, handleTimeUpdate, formatTime)
    - Album fetching
    - Step validation (validateStep, nextStep, prevStep)
    - Enhanced file handling with preview generation
 
 4. **Updated handleSubmit** with:
+
    - Progress tracking
    - Album linking
    - Better error handling
@@ -33,6 +36,7 @@ Due to the file's size and complexity, here's what needs to be done to complete 
 ### Option 1: Complete the Multi-Step Wizard
 
 The file structure needs to be:
+
 - Step 1: File Upload (with previews) - DONE
 - Step 2: Track Information - PARTIALLY DONE (needs proper closing)
 - Step 3: Review & Submit - NEEDS TO BE ADDED
@@ -42,6 +46,7 @@ The file structure needs to be:
 ### Option 2: Simpler Enhancement (Recommended)
 
 Keep the single-page form but add:
+
 1. Audio/image previews (already coded, just needs integration)
 2. Album dropdown (already coded)
 3. Better progress indication during upload

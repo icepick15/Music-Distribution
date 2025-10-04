@@ -15,7 +15,7 @@ def handle_payment_for_referral(sender, instance, created, **kwargs):
         return
     
     # Only process successful payments
-    if instance.status != 'completed':
+    if instance.status != 'success':
         return
     
     # Check if this user was referred
@@ -61,12 +61,12 @@ def handle_payment_for_referral(sender, instance, created, **kwargs):
             ref.credit_awarded_at = credit.earned_at
             ref.save()
         
-        # TODO: Send notification to referrer about new credit
+        # Send notification to referrer about new credit
         from src.apps.notifications.services import NotificationService
         try:
             NotificationService.send_user_notification(
                 user=referral_code.user,
-                notification_type='referral_credit',
+                notification_type_name='referral_credit',
                 title='🎉 You earned a free upload credit!',
                 message=f'You earned 1 free upload credit from your referrals. You now have {ReferralCredit.get_available_credits(referral_code.user)} credits available.',
                 priority='normal'

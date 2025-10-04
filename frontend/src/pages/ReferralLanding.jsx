@@ -16,9 +16,17 @@ const ReferralLanding = () => {
   const [isValid, setIsValid] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // If no code provided, show general info page
+  const isGeneralInfoPage = !code;
+
   useEffect(() => {
-    validateReferralCode();
-    trackReferralClick();
+    if (!isGeneralInfoPage) {
+      validateReferralCode();
+      trackReferralClick();
+    } else {
+      setLoading(false);
+      setIsValid(true); // Show content for general info
+    }
   }, [code]);
 
   const validateReferralCode = async () => {
@@ -125,17 +133,33 @@ const ReferralLanding = () => {
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-lg rounded-full text-white mb-6">
-            <GiftIcon className="h-5 w-5" />
-            <span className="font-medium">You've been invited by {referrerName}</span>
-          </div>
+          {!isGeneralInfoPage && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-lg rounded-full text-white mb-6">
+              <GiftIcon className="h-5 w-5" />
+              <span className="font-medium">You've been invited by {referrerName}</span>
+            </div>
+          )}
+          
+          {isGeneralInfoPage && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-lg rounded-full text-white mb-6">
+              <GiftIcon className="h-5 w-5" />
+              <span className="font-medium">Earn Free Upload Credits</span>
+            </div>
+          )}
           
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Distribute Your Music<br />to the World
+            {isGeneralInfoPage ? (
+              <>Referral Program<br />Earn Free Uploads</>
+            ) : (
+              <>Distribute Your Music<br />to the World</>
+            )}
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of artists uploading their music to major streaming platforms.
-            Get started today with our powerful distribution tools.
+            {isGeneralInfoPage ? (
+              <>Share your referral link with friends and earn free upload credits! Get 1 free credit for every 2 friends who subscribe.</>
+            ) : (
+              <>Join thousands of artists uploading their music to major streaming platforms. Get started today with our powerful distribution tools.</>
+            )}
           </p>
           
           <button

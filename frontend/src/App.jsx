@@ -46,6 +46,8 @@ import StreamDashboard from './pages/StreamDashboard';
 import NotificationTest from './pages/NotificationTest';
 import ReferralDashboard from './pages/dashboard/ReferralDashboard';
 import ReferralLanding from './pages/ReferralLanding';
+import BlogList from './pages/BlogList';
+import BlogPost from './pages/BlogPost';
 
 // Admin Pages
 import AdminDashboard from './pages/AdminDashboard';
@@ -137,8 +139,25 @@ const AppRoutes = () => {
           </>
         } />
 
+        {/* Blog Routes - Public */}
+        <Route path="/blog" element={
+          <>
+            <Navbar />
+            <BlogList />
+            <ModernFooter />
+          </>
+        } />
+        <Route path="/blog/:slug" element={
+          <>
+            <Navbar />
+            <BlogPost />
+            <ModernFooter />
+          </>
+        } />
+
         {/* Referral Landing - Public */}
         <Route path="/join/:code" element={<ReferralLanding />} />
+        <Route path="/join" element={<ReferralLanding />} />
 
         {/* Auth Routes - Standalone */}
         <Route path="/login" element={<Login />} />

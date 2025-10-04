@@ -16,7 +16,8 @@ import {
   BellIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  BookOpenIcon
 } from '@heroicons/react/24/outline';
 
 const SidebarButton = ({ to, icon: Icon, children, status, badge, disabled = false, onClick }) => {
@@ -168,12 +169,11 @@ const EnhancedSidebar = () => {
             Upload Music
           </SidebarButton>
 
-          {/* Analytics - Coming Soon */}
+          {/* Analytics - Now Available */}
           <SidebarButton 
+            to="/dashboard/analytics"
             icon={ChartBarIcon}
-            status="locked"
-            badge={{ type: 'soon', text: 'Coming Soon' }}
-            onClick={() => showLockedTooltip('Analytics & Insights')}
+            badge={uploadCount > 0 ? { type: 'new', text: 'Demo' } : { type: 'info', text: 'Upload to Unlock' }}
           >
             Analytics
           </SidebarButton>
@@ -204,12 +204,11 @@ const EnhancedSidebar = () => {
             </SidebarButton>
           </SubscriptionGuard>
 
-          {/* Sales & Revenue - Coming Soon */}
+          {/* Sales & Revenue - Now Available */}
           <SidebarButton 
+            to="/dashboard/sales"
             icon={CurrencyDollarIcon}
-            status="locked"
-            badge={{ type: 'soon', text: 'Coming Soon' }}
-            onClick={() => showLockedTooltip('Sales & Revenue Tracking')}
+            badge={uploadCount > 0 ? { type: 'new', text: 'Demo' } : { type: 'info', text: 'Upload to Unlock' }}
           >
             Sales & Revenue
           </SidebarButton>
@@ -237,6 +236,10 @@ const EnhancedSidebar = () => {
             badge={{ type: 'new', text: 'NEW' }}
           >
             Referrals
+          </SidebarButton>
+
+          <SidebarButton to="/blog" icon={BookOpenIcon}>
+            Blog & Guides
           </SidebarButton>
 
           <SidebarButton to="/dashboard/settings" icon={CogIcon}>
@@ -322,9 +325,6 @@ const EnhancedSidebar = () => {
             <div>
               <p className="text-sm text-purple-700 mb-2">
                 ✨ Unlimited uploads & premium features
-              </p>
-              <p className="text-xs text-purple-600">
-                Next billing: Dec 2025
               </p>
             </div>
           )}

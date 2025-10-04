@@ -86,9 +86,8 @@ export const SubscriptionProvider = ({ children }) => {
       const remainingCredits = subscription.remaining_credits || 0;
       return remainingCredits > 0 && subscription.status === 'active';
     } else if (subscription.subscription_type === 'free') {
-      // Free users might have limited uploads for demo/testing purposes
-      // You can customize this logic based on your business rules
-      return true; // Or set to false if free users shouldn't upload
+      // Free users must purchase a subscription to upload
+      return false;
     }
 
     return false;
@@ -104,7 +103,8 @@ export const SubscriptionProvider = ({ children }) => {
       const remaining = subscription.remaining_credits || 0;
       return Math.max(0, remaining);
     } else if (subscription.subscription_type === 'free') {
-      return 'demo'; // or a specific number like 1-3 for free users
+      // Free users have no upload credits
+      return 0;
     }
 
     return 0;
@@ -134,8 +134,8 @@ export const SubscriptionProvider = ({ children }) => {
       // Yearly subscribers don't need to consume credits
       return true;
     } else if (subscription && subscription.subscription_type === 'free') {
-      // Free users don't have credits to consume, but upload might be allowed for demo/testing
-      return true;
+      // Free users cannot upload without payment
+      return false;
     }
 
     return false;
