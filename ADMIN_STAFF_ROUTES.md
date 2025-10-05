@@ -7,11 +7,13 @@
 ## 🔐 Route Structure
 
 ### Single Route for Both Roles:
+
 ```
 http://localhost:5173/control-panel/
 ```
 
 **Why the same route?**
+
 - The UI automatically adapts based on user role
 - Navigation filters show/hide items based on permissions
 - Admin sees all features
@@ -23,11 +25,13 @@ http://localhost:5173/control-panel/
 ## 🚪 Login & Access
 
 ### Login Page:
+
 ```
 http://localhost:5173/login
 ```
 
 **For both Admin and Staff:**
+
 1. Go to: `http://localhost:5173/login`
 2. Enter credentials:
    - Admin: `yourname_admin` / `admin123`
@@ -35,6 +39,7 @@ http://localhost:5173/login
 3. After login, you'll be redirected automatically
 
 ### Alternative Admin Login (if needed):
+
 ```
 http://localhost:5173/admin-login
 ```
@@ -44,6 +49,7 @@ http://localhost:5173/admin-login
 ## 🎯 What Happens After Login
 
 ### Admin User Flow:
+
 ```
 1. Login → http://localhost:5173/login
 2. Redirect → http://localhost:5173/control-panel/
@@ -52,6 +58,7 @@ http://localhost:5173/admin-login
 ```
 
 ### Staff User Flow:
+
 ```
 1. Login → http://localhost:5173/login
 2. Redirect → http://localhost:5173/control-panel/
@@ -64,6 +71,7 @@ http://localhost:5173/admin-login
 ## 📍 Control Panel Sub-Routes
 
 ### Admin Can Access All:
+
 ```
 /control-panel/                      → Dashboard
 /control-panel/users                 → User Management
@@ -78,6 +86,7 @@ http://localhost:5173/admin-login
 ```
 
 ### Staff Can Access:
+
 ```
 ✅ /control-panel/                   → Dashboard (no revenue)
 ✅ /control-panel/users              → User Management (view-only)
@@ -97,12 +106,14 @@ http://localhost:5173/admin-login
 ## 🔒 Route Protection
 
 ### Backend Protection:
+
 - Django routes at `/control-panel/` (was `/admin/`)
 - API endpoints at `/api/cp/` (was `/api/admin/`)
 - Permission classes enforce role restrictions
 - 403 Forbidden for unauthorized API calls
 
 ### Frontend Protection:
+
 - React routes filter by role
 - Navigation hides inaccessible items
 - Permission checks on components
@@ -113,6 +124,7 @@ http://localhost:5173/admin-login
 ## 🧪 Testing Routes
 
 ### Test Admin Access:
+
 ```
 1. Login as admin
 2. Try accessing: http://localhost:5173/control-panel/settings
@@ -120,6 +132,7 @@ http://localhost:5173/admin-login
 ```
 
 ### Test Staff Access:
+
 ```
 1. Login as staff
 2. Try accessing: http://localhost:5173/control-panel/settings
@@ -127,6 +140,7 @@ http://localhost:5173/admin-login
 ```
 
 ### Test Direct URL Access:
+
 ```
 1. Logout completely
 2. Try: http://localhost:5173/control-panel/
@@ -138,6 +152,7 @@ http://localhost:5173/admin-login
 ## 📋 URL Testing Checklist
 
 ### As Admin:
+
 - [ ] `/control-panel/` loads dashboard
 - [ ] `/control-panel/users` shows edit buttons
 - [ ] `/control-panel/financial` loads (not hidden)
@@ -146,6 +161,7 @@ http://localhost:5173/admin-login
 - [ ] All routes work without restrictions
 
 ### As Staff:
+
 - [ ] `/control-panel/` loads dashboard (no revenue)
 - [ ] `/control-panel/users` shows view-only mode
 - [ ] `/control-panel/financial` → Navigation hidden
@@ -160,6 +176,7 @@ http://localhost:5173/admin-login
 ### Same URL, Different Experience:
 
 **Admin at `/control-panel/`:**
+
 ```
 ┌─────────────────────────────────────┐
 │ 🔴 Administrator Badge              │
@@ -182,6 +199,7 @@ http://localhost:5173/admin-login
 ```
 
 **Staff at `/control-panel/`:**
+
 ```
 ┌─────────────────────────────────────┐
 │ 🔵 Staff Member Badge               │
@@ -205,6 +223,7 @@ http://localhost:5173/admin-login
 ## 🔑 Key Points
 
 ### Same Route, Different Permissions:
+
 - ✅ **One route** (`/control-panel/`) for both roles
 - ✅ **UI adapts** automatically based on user role
 - ✅ **Navigation filters** show/hide items
@@ -212,11 +231,13 @@ http://localhost:5173/admin-login
 - ✅ **No separate staff route** (better security)
 
 ### Security Through Obscurity:
+
 - ❌ Old: `/admin/` (predictable, easy to find)
 - ✅ New: `/control-panel/` (less obvious)
 - ✅ API: `/api/cp/` (obscured admin endpoints)
 
 ### Permission Layers:
+
 1. **Frontend:** Hide/disable UI elements
 2. **Backend:** Reject unauthorized API calls
 3. **Database:** Role-based access control
@@ -226,21 +247,27 @@ http://localhost:5173/admin-login
 ## 🆘 Common Questions
 
 ### Q: Can I create a separate staff route like `/staff-panel/`?
+
 **A:** Not recommended. Current design is more secure:
+
 - Single route reduces attack surface
 - No predictable staff-only URLs
 - UI automatically adapts to role
 - Simpler maintenance
 
 ### Q: What if staff tries to access admin-only routes directly?
+
 **A:** Multiple protections:
+
 1. Navigation doesn't show the link
 2. Component checks permissions (shows disabled state)
 3. Backend returns 403 if API called
 4. No data returned for unauthorized requests
 
 ### Q: How does the system know which role I am?
-**A:** 
+
+**A:**
+
 1. JWT token contains user role
 2. AuthContext provides user data
 3. Permission utilities check role
@@ -253,6 +280,7 @@ http://localhost:5173/admin-login
 ### For Testing:
 
 **Admin Account:**
+
 ```bash
 URL: http://localhost:5173/login
 Username: yourname_admin
@@ -261,6 +289,7 @@ After Login: http://localhost:5173/control-panel/
 ```
 
 **Staff Account:**
+
 ```bash
 URL: http://localhost:5173/login
 Username: yourname_staff

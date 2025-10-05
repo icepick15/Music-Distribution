@@ -18,6 +18,7 @@ python create_test_accounts.py
 ```
 
 **What this does:**
+
 - Creates an admin account with your email (+admin suffix)
 - Creates a staff account with your email (+staff suffix)
 - Sets up proper roles and permissions
@@ -33,6 +34,7 @@ python manage.py runserver
 ```
 
 **Expected output:**
+
 ```
 Starting development server at http://127.0.0.1:8000/
 ```
@@ -46,6 +48,7 @@ npm run dev
 ```
 
 **Expected output:**
+
 ```
 Local: http://localhost:5173/
 ```
@@ -53,6 +56,7 @@ Local: http://localhost:5173/
 ### Step 4: Verify Backend Settings
 
 Check email configuration is set up:
+
 ```python
 # In Django settings, verify:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -67,6 +71,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ### SCENARIO 1: Admin Account Testing (Full Access)
 
 #### 1.1 Login as Admin
+
 1. Open browser: http://localhost:5173/
 2. Click "Login"
 3. Enter admin credentials:
@@ -75,8 +80,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 4. ✅ **Expected:** Successful login, redirected to dashboard
 
 #### 1.2 Navigation Testing
+
 1. Check sidebar navigation
 2. ✅ **Expected:** All items visible:
+
    - Dashboard
    - User Management
    - Content Management
@@ -91,6 +98,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 4. ✅ **Expected:** User email displayed at top
 
 #### 1.3 Dashboard Testing
+
 1. Navigate to Dashboard
 2. ✅ **Expected:** See ALL metrics including:
    - Total Revenue (admin-only)
@@ -101,6 +109,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
    - Pending Approvals
 
 #### 1.4 User Management Testing
+
 1. Navigate to User Management
 2. ✅ **Expected:** Full edit controls visible
 3. Click on any user row
@@ -115,6 +124,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 8. ✅ **Expected:** No "View Only" badges
 
 #### 1.5 Song Approval Testing
+
 1. Navigate to Content Management
 2. ✅ **Expected:** No staff notice banner
 3. ✅ **Expected:** Export button visible
@@ -126,6 +136,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 9. ✅ **Expected:** Delete action works
 
 #### 1.6 System Settings Testing
+
 1. Navigate to System Settings
 2. ✅ **Expected:** No "Admin Only" banner
 3. ✅ **Expected:** All form inputs are enabled
@@ -136,6 +147,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 8. ✅ **Expected:** Settings save successfully
 
 #### 1.7 Support & Communications Testing
+
 1. Navigate to Support & Tickets
 2. ✅ **Expected:** No staff restriction banner
 3. ✅ **Expected:** "Send Notification" button visible at top
@@ -147,6 +159,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 9. ✅ **Expected:** Modal opens for bulk notifications
 
 #### 1.8 Audit Logs Testing
+
 1. Navigate to Audit Logs
 2. ✅ **Expected:** No staff restriction notice
 3. ✅ **Expected:** Export button visible
@@ -155,6 +168,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 6. ✅ **Expected:** Logs show various users' actions
 
 #### 1.9 Email Notification Testing
+
 1. Perform an action that triggers email (e.g., verify artist)
 2. Check your email inbox (admin email address)
 3. ✅ **Expected:** Email notification received
@@ -165,6 +179,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ### SCENARIO 2: Staff Account Testing (Restricted Access)
 
 #### 2.1 Logout and Login as Staff
+
 1. Logout from admin account
 2. Click "Login"
 3. Enter staff credentials:
@@ -173,13 +188,16 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 4. ✅ **Expected:** Successful login, redirected to dashboard
 
 #### 2.2 Navigation Testing
+
 1. Check sidebar navigation
 2. ❌ **Expected:** Some items HIDDEN:
+
    - Financial Management (should NOT appear)
    - Notifications (should NOT appear)
    - System Settings (should NOT appear)
 
 3. ✅ **Expected:** These items VISIBLE:
+
    - Dashboard
    - User Management (with "View Only" badge)
    - Content Management
@@ -191,6 +209,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 5. ✅ **Expected:** Help text: "Contact admin for full access"
 
 #### 2.3 Dashboard Testing
+
 1. Navigate to Dashboard
 2. ❌ **Expected:** Revenue card NOT visible
 3. ✅ **Expected:** Other metrics visible:
@@ -201,6 +220,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
    - Pending Approvals
 
 #### 2.4 User Management Testing
+
 1. Navigate to User Management
 2. ✅ **Expected:** Blue banner: "Staff Access Mode - View-only access"
 3. ❌ **Expected:** Export button NOT visible
@@ -212,6 +232,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 9. ❌ **Expected:** Button not present (can't perform action)
 
 #### 2.5 Song Approval Testing
+
 1. Navigate to Content Management
 2. ✅ **Expected:** Green banner: "Staff can approve or reject songs"
 3. ❌ **Expected:** Export button NOT visible
@@ -223,6 +244,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 9. ❌ **Expected:** Delete button NOT visible (admin-only)
 
 #### 2.6 System Settings Testing
+
 1. Try to navigate to System Settings from URL
 2. Option A: Route is protected (shouldn't appear in nav)
 3. Option B: If somehow accessed:
@@ -232,6 +254,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
    - ❌ **Expected:** Cannot change any settings
 
 #### 2.7 Support & Communications Testing
+
 1. Navigate to Support & Tickets
 2. ✅ **Expected:** Blue banner: "Staff can view and respond"
 3. ❌ **Expected:** "Send Notification" button NOT visible
@@ -242,6 +265,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 8. ✅ **Expected:** Can respond to ticket (if respond feature exists)
 
 #### 2.8 Audit Logs Testing
+
 1. Navigate to Audit Logs
 2. ✅ **Expected:** Blue banner: "You can view your own audit trail"
 3. ❌ **Expected:** Export button NOT visible
@@ -250,6 +274,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 6. ❌ **Expected:** Cannot see other users' logs
 
 #### 2.9 Email Notification Testing
+
 1. Perform an action that triggers email (e.g., approve song)
 2. Check your email inbox (staff email address)
 3. ✅ **Expected:** Email notification received
@@ -260,6 +285,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ## 🐛 TESTING CHECKLIST
 
 ### Visual Elements:
+
 - [ ] Admin badge is red
 - [ ] Staff badge is blue
 - [ ] Lock icons appear for staff restrictions
@@ -268,6 +294,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 - [ ] Responsive design works (resize browser)
 
 ### Functional Elements:
+
 - [ ] Navigation filters correctly by role
 - [ ] Admin sees all features
 - [ ] Staff sees limited features
@@ -277,6 +304,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 - [ ] Audit logs filtered by user_id for staff
 
 ### API Testing:
+
 - [ ] Admin API calls return full data
 - [ ] Staff API calls filtered correctly
 - [ ] Unauthorized actions return 403 error
@@ -284,12 +312,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 - [ ] No CORS errors
 
 ### Browser Console:
+
 - [ ] No JavaScript errors (admin account)
 - [ ] No JavaScript errors (staff account)
 - [ ] No 404 errors for missing files
 - [ ] No permission errors in console
 
 ### Email Notifications:
+
 - [ ] Admin email received (+admin address)
 - [ ] Staff email received (+staff address)
 - [ ] Both emails formatted correctly
@@ -300,7 +330,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ## 🔍 DEBUGGING GUIDE
 
 ### Issue: Can't login with test accounts
+
 **Check:**
+
 ```powershell
 python manage.py shell
 >>> from django.contrib.auth import get_user_model
@@ -310,7 +342,9 @@ python manage.py shell
 ```
 
 ### Issue: Staff sees admin features
+
 **Check:**
+
 1. Open browser DevTools (F12)
 2. Console tab
 3. Type: `localStorage.getItem('access_token')`
@@ -318,21 +352,27 @@ python manage.py shell
 5. Verify role in token payload
 
 ### Issue: API returns 403 Forbidden
+
 **Check backend logs:**
+
 ```powershell
 # Check Django server terminal for errors
 # Look for permission denied messages
 ```
 
 ### Issue: Navigation doesn't filter
+
 **Check:**
+
 1. Browser DevTools → Console
 2. Look for AuthContext errors
 3. Type: `document.querySelector('[data-user-role]')` (if implemented)
 4. Verify user role is set correctly
 
 ### Issue: No email notifications
+
 **Check Django settings:**
+
 ```python
 # Check if using console backend:
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -394,9 +434,9 @@ Tester: [Your Name]
 - [ ] Tokens work
 
 ## Issues Found
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Overall Status
 - [ ] PASS - Ready for production
@@ -412,11 +452,13 @@ Tester: [Your Name]
 ## 🚀 QUICK TEST COMMANDS
 
 ### Reset Test Accounts:
+
 ```powershell
 python create_test_accounts.py
 ```
 
 ### Check User Roles:
+
 ```powershell
 python manage.py shell
 >>> from django.contrib.auth import get_user_model
@@ -426,6 +468,7 @@ python manage.py shell
 ```
 
 ### View Email in Console:
+
 ```python
 # In settings.py, temporarily use:
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -433,10 +476,12 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ```
 
 ### Clear Browser Cache:
+
 1. F12 → Application → Storage → Clear site data
 2. Or use Incognito/Private window
 
 ### Check API Endpoints:
+
 ```powershell
 # Test admin endpoint
 curl http://localhost:8000/api/cp/dashboard/ -H "Authorization: Bearer YOUR_TOKEN"
@@ -450,20 +495,25 @@ curl http://localhost:8000/api/cp/settings/ -H "Authorization: Bearer YOUR_TOKEN
 ## 📧 EMAIL TESTING NOTES
 
 ### Gmail + Addressing:
+
 If using Gmail, both emails will arrive in your inbox:
+
 - Admin: `youremail+admin@gmail.com`
 - Staff: `youremail+staff@gmail.com`
 
 You can filter by recipient to separate them.
 
 ### Console Backend (No Real Emails):
+
 ```python
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ```
+
 Emails appear in Django terminal output.
 
 ### SMTP Testing:
+
 ```python
 # settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -481,12 +531,14 @@ EMAIL_HOST_PASSWORD = 'your-app-password'  # Use App Password, not regular passw
 Phase 2 testing is successful when:
 
 1. **Admin Account:**
+
    - ✅ Full access to all features
    - ✅ No restrictions visible
    - ✅ All actions work correctly
    - ✅ Emails received
 
 2. **Staff Account:**
+
    - ✅ Limited navigation (3 items hidden)
    - ✅ View-only mode works
    - ✅ Can approve songs
@@ -495,6 +547,7 @@ Phase 2 testing is successful when:
    - ✅ Emails received
 
 3. **Security:**
+
    - ✅ Backend rejects unauthorized actions
    - ✅ UI prevents unauthorized access
    - ✅ No permission bypass possible

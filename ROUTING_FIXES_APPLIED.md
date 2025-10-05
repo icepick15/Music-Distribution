@@ -8,21 +8,23 @@
 ## ✅ What Was Fixed
 
 ### Issue 1: Staff Gets "Unauthorized" Error
+
 **Problem:** ProtectedRoute only allowed users with `role === 'admin'`  
 **Solution:** Updated to allow both `admin` and `staff` roles
 
 **File:** `frontend/src/components/ProtectedRoute.jsx`
+
 ```javascript
 // Before:
-if (adminOnly && user.publicMetadata.role !== 'admin') {
+if (adminOnly && user.publicMetadata.role !== "admin") {
   return <Navigate to="/unauthorized" />;
 }
 
 // After:
 if (adminOnly) {
   const userRole = user?.publicMetadata?.role || user?.role;
-  const isAdminOrStaff = userRole === 'admin' || userRole === 'staff';
-  
+  const isAdminOrStaff = userRole === "admin" || userRole === "staff";
+
   if (!isAdminOrStaff) {
     return <Navigate to="/unauthorized" replace />;
   }
@@ -30,28 +32,32 @@ if (adminOnly) {
 ```
 
 ### Issue 2: No Auto-Redirect After Login
+
 **Problem:** All users redirected to `/dashboard` regardless of role  
 **Solution:** Added role-based redirect logic
 
 **File:** `frontend/src/pages/auth/Login.jsx`
+
 ```javascript
 // Now checks user role and redirects accordingly:
 if (result.success) {
   const userRole = result.user?.publicMetadata?.role || result.user?.role;
-  
-  if (userRole === 'admin' || userRole === 'staff') {
-    navigate('/control-panel');  // Admin/Staff → Control Panel
+
+  if (userRole === "admin" || userRole === "staff") {
+    navigate("/control-panel"); // Admin/Staff → Control Panel
   } else {
-    navigate('/dashboard');      // Regular users → Dashboard
+    navigate("/dashboard"); // Regular users → Dashboard
   }
 }
 ```
 
 ### Issue 3: Removed developersOnly Flag
+
 **Problem:** Route had unnecessary `developersOnly={true}` flag  
 **Solution:** Removed it to use proper role-based auth
 
 **File:** `frontend/src/App.jsx`
+
 ```javascript
 // Before:
 <Route path="/control-panel/*" element={
@@ -67,6 +73,7 @@ if (result.success) {
 ## 🧪 Test These Fixes
 
 ### Test 1: Staff Login (Should Work Now)
+
 ```
 1. Go to: http://localhost:5173/login
 2. Login with staff credentials:
@@ -78,6 +85,7 @@ if (result.success) {
 ```
 
 ### Test 2: Admin Login (Should Still Work)
+
 ```
 1. Logout (if logged in)
 2. Go to: http://localhost:5173/login
@@ -89,6 +97,7 @@ if (result.success) {
 ```
 
 ### Test 3: Regular User Login
+
 ```
 1. Login with a regular user account
 2. ✅ Expected: Auto-redirect to /dashboard/
@@ -96,6 +105,7 @@ if (result.success) {
 ```
 
 ### Test 4: Direct URL Access
+
 ```
 1. Logout completely
 2. Try: http://localhost:5173/control-panel/
@@ -109,25 +119,27 @@ if (result.success) {
 ## 🔍 How Role Detection Works
 
 ### User Object Structure:
+
 ```javascript
 user = {
   id: 1,
   username: "yourname_staff",
   email: "your.email+staff@gmail.com",
-  role: "staff",           // ← Direct property
+  role: "staff", // ← Direct property
   publicMetadata: {
-    role: "staff"          // ← Also checked (Clerk compatibility)
-  }
-}
+    role: "staff", // ← Also checked (Clerk compatibility)
+  },
+};
 ```
 
 ### Role Checking Logic:
+
 ```javascript
 // Checks both locations for compatibility
 const userRole = user?.publicMetadata?.role || user?.role;
 
 // Then checks if admin or staff
-const isAdminOrStaff = userRole === 'admin' || userRole === 'staff';
+const isAdminOrStaff = userRole === "admin" || userRole === "staff";
 ```
 
 ---
@@ -137,6 +149,7 @@ const isAdminOrStaff = userRole === 'admin' || userRole === 'staff';
 After these fixes, verify:
 
 **Staff Account:**
+
 - [ ] Can login without errors
 - [ ] Auto-redirects to `/control-panel/`
 - [ ] Sees blue "Staff Member" badge
@@ -145,6 +158,7 @@ After these fixes, verify:
 - [ ] Can access control panel features (with restrictions)
 
 **Admin Account:**
+
 - [ ] Can login without errors
 - [ ] Auto-redirects to `/control-panel/`
 - [ ] Sees red "Administrator" badge
@@ -153,6 +167,7 @@ After these fixes, verify:
 - [ ] NO restrictions
 
 **Regular User:**
+
 - [ ] Can login
 - [ ] Auto-redirects to `/dashboard/`
 - [ ] Does NOT see control panel
@@ -163,6 +178,7 @@ After these fixes, verify:
 ## 🐛 If Issues Persist
 
 ### Staff still gets unauthorized:
+
 ```javascript
 // Check browser console for user object:
 console.log(user);
@@ -173,6 +189,7 @@ python create_test_accounts.py
 ```
 
 ### No auto-redirect:
+
 ```javascript
 // Check Login.jsx console logs:
 // Should see: "Login successful, user set: { ... role: 'staff' ... }"
@@ -182,6 +199,7 @@ python create_test_accounts.py
 ```
 
 ### Role not detected:
+
 ```powershell
 # Verify in database:
 python manage.py shell
@@ -197,11 +215,13 @@ python manage.py shell
 ## 🎯 Summary
 
 **What Changed:**
+
 1. ✅ ProtectedRoute now allows both admin AND staff
 2. ✅ Login now auto-redirects based on role
 3. ✅ Removed unnecessary developersOnly flag
 
 **Result:**
+
 - ✅ Staff can access control panel
 - ✅ Admin can access control panel
 - ✅ Both redirect automatically after login

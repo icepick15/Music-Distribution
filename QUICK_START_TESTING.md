@@ -13,11 +13,13 @@ python create_test_accounts.py
 ```
 
 **What to do:**
+
 - Enter your email when prompted
 - Script creates admin + staff accounts
 - Note down the usernames displayed
 
 **Example output:**
+
 ```
 ✅ Created admin account: yourname_admin
 ✅ Created staff account: yourname_staff
@@ -33,6 +35,7 @@ python verify_test_setup.py
 ```
 
 **Expected:**
+
 ```
 ✅ Admin accounts exist
 ✅ Staff accounts exist
@@ -51,6 +54,7 @@ python manage.py runserver
 ```
 
 **Expected:**
+
 ```
 Starting development server at http://127.0.0.1:8000/
 Quit the server with CTRL-BREAK.
@@ -68,6 +72,7 @@ npm run dev
 ```
 
 **Expected:**
+
 ```
 ➜  Local:   http://localhost:5173/
 ➜  Network: use --host to expose
@@ -83,6 +88,7 @@ npm run dev
 
 1. **Open:** http://localhost:5173/
 2. **Login:**
+
    - Username: `[your_prefix]_admin`
    - Password: `admin123`
 
@@ -101,6 +107,7 @@ npm run dev
 
 1. **Logout** from admin
 2. **Login:**
+
    - Username: `[your_prefix]_staff`
    - Password: `staff123`
 
@@ -120,10 +127,12 @@ npm run dev
 ## 📧 Email Testing (Optional)
 
 ### If using console backend:
+
 - Emails appear in Django terminal (Terminal 1)
 - Look for email output after actions
 
 ### If using SMTP:
+
 - Check your email inbox
 - Admin emails: `youremail+admin@...`
 - Staff emails: `youremail+staff@...`
@@ -133,30 +142,35 @@ npm run dev
 ## ⚡ Common Issues & Quick Fixes
 
 ### "Cannot find module"
+
 ```powershell
 cd frontend
 npm install
 ```
 
 ### "Module not found: permissions.js"
+
 ```powershell
 # Check file exists:
 dir frontend\src\utils\permissions.js
 ```
 
 ### "API returns 403"
+
 ```powershell
 # Check backend is running on port 8000
 # Check JWT token is valid (re-login)
 ```
 
 ### "Navigation doesn't filter"
+
 ```powershell
 # Clear browser cache (F12 → Application → Clear Storage)
 # Or use Incognito mode
 ```
 
 ### "User role is wrong"
+
 ```powershell
 python manage.py shell
 >>> from django.contrib.auth import get_user_model
@@ -173,6 +187,7 @@ python manage.py shell
 ## 🎯 Success Criteria
 
 ### ✅ PASS if:
+
 1. Admin sees all features (no restrictions)
 2. Staff sees limited features (3 nav items hidden)
 3. Revenue card hidden from staff
@@ -181,6 +196,7 @@ python manage.py shell
 6. Both accounts can receive emails
 
 ### ❌ FAIL if:
+
 1. Staff sees admin-only features
 2. Admin sees restriction notices
 3. Navigation doesn't filter
@@ -227,6 +243,7 @@ Issues found:
 For comprehensive testing, see: **TESTING_GUIDE_PHASE_2.md**
 
 Covers:
+
 - Detailed scenario testing
 - All component checks
 - API testing procedures
@@ -239,11 +256,13 @@ Covers:
 ## 🆘 Need Help?
 
 ### Check logs:
+
 - Django: Terminal 1 (backend)
 - React: Terminal 2 (frontend)
 - Browser: F12 → Console tab
 
 ### Quick debug commands:
+
 ```powershell
 # View test accounts
 python manage.py shell

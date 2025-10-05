@@ -24,21 +24,29 @@
 **File:** `frontend/src/App.jsx`
 
 **Admin Route (Admin Only):**
+
 ```jsx
-<Route path="/control-panel/*" element={
-  <ProtectedRoute adminOnly={true} requireAdmin={true}>
-    <AdminDashboard />
-  </ProtectedRoute>
-} />
+<Route
+  path="/control-panel/*"
+  element={
+    <ProtectedRoute adminOnly={true} requireAdmin={true}>
+      <AdminDashboard />
+    </ProtectedRoute>
+  }
+/>
 ```
 
 **Staff Route (Staff Only):**
+
 ```jsx
-<Route path="/staff-portal/*" element={
-  <ProtectedRoute adminOnly={false} requireStaff={true}>
-    <StaffDashboard />
-  </ProtectedRoute>
-} />
+<Route
+  path="/staff-portal/*"
+  element={
+    <ProtectedRoute adminOnly={false} requireStaff={true}>
+      <StaffDashboard />
+    </ProtectedRoute>
+  }
+/>
 ```
 
 ### 3. Enhanced ProtectedRoute ✅
@@ -46,21 +54,23 @@
 **File:** `frontend/src/components/ProtectedRoute.jsx`
 
 **New Props Added:**
+
 - `requireAdmin` - Only allow admin role
 - `requireStaff` - Only allow staff role
 
 **Logic:**
+
 ```javascript
 // Admin-only routes
 if (requireAdmin) {
-  if (userRole !== 'admin') {
+  if (userRole !== "admin") {
     return <Navigate to="/unauthorized" replace />;
   }
 }
 
 // Staff-only routes
 if (requireStaff) {
-  if (userRole !== 'staff') {
+  if (userRole !== "staff") {
     return <Navigate to="/unauthorized" replace />;
   }
 }
@@ -71,20 +81,22 @@ if (requireStaff) {
 **File:** `frontend/src/pages/auth/Login.jsx`
 
 **Before:**
+
 ```javascript
-if (userRole === 'admin' || userRole === 'staff') {
-  navigate('/control-panel');  // ❌ Both went to same place
+if (userRole === "admin" || userRole === "staff") {
+  navigate("/control-panel"); // ❌ Both went to same place
 }
 ```
 
 **After:**
+
 ```javascript
-if (userRole === 'admin') {
-  navigate('/control-panel');  // ✅ Admin to control panel
-} else if (userRole === 'staff') {
-  navigate('/staff-portal');   // ✅ Staff to staff portal
+if (userRole === "admin") {
+  navigate("/control-panel"); // ✅ Admin to control panel
+} else if (userRole === "staff") {
+  navigate("/staff-portal"); // ✅ Staff to staff portal
 } else {
-  navigate('/dashboard');      // ✅ Users to regular dashboard
+  navigate("/dashboard"); // ✅ Users to regular dashboard
 }
 ```
 
@@ -93,23 +105,27 @@ if (userRole === 'admin') {
 **File:** `frontend/src/admin/components/AdminSidebar.jsx`
 
 **Dynamic Title:**
+
 - Admin sees: **"Admin Control Panel"** (purple gradient)
 - Staff sees: **"Staff Portal"** (blue gradient)
 
 **Dynamic Navigation:**
+
 - Admin links use: `/control-panel/...`
 - Staff links use: `/staff-portal/...`
 
 **Code:**
+
 ```javascript
 const userRole = user?.role || user?.publicMetadata?.role;
-const panelTitle = userRole === 'admin' ? 'Admin Control Panel' : 'Staff Portal';
-const baseRoute = userRole === 'admin' ? '/control-panel' : '/staff-portal';
+const panelTitle =
+  userRole === "admin" ? "Admin Control Panel" : "Staff Portal";
+const baseRoute = userRole === "admin" ? "/control-panel" : "/staff-portal";
 
 // Navigation items automatically use correct base route
-const navItems = allNavItems.map(item => ({
+const navItems = allNavItems.map((item) => ({
   ...item,
-  to: item.to.replace('/control-panel', baseRoute)
+  to: item.to.replace("/control-panel", baseRoute),
 }));
 ```
 
@@ -118,6 +134,7 @@ const navItems = allNavItems.map(item => ({
 ## Route Structure
 
 ### Admin Routes (Admin Only)
+
 ```
 /control-panel/              → Admin Dashboard Overview
 /control-panel/users         → User Management (full access)
@@ -131,6 +148,7 @@ const navItems = allNavItems.map(item => ({
 ```
 
 ### Staff Routes (Staff Only)
+
 ```
 /staff-portal/               → Staff Dashboard Overview
 /staff-portal/users          → User Management (view only)
@@ -141,6 +159,7 @@ const navItems = allNavItems.map(item => ({
 ```
 
 **Note:** Staff cannot access:
+
 - Financial Management
 - Bulk Notifications
 - System Settings
@@ -150,6 +169,7 @@ const navItems = allNavItems.map(item => ({
 ## User Experience Flow
 
 ### Admin Login Flow
+
 1. Login with admin credentials
 2. → Redirect to `/control-panel/`
 3. See "Admin Control Panel" with purple branding
@@ -158,6 +178,7 @@ const navItems = allNavItems.map(item => ({
 6. Can edit system settings
 
 ### Staff Login Flow
+
 1. Login with staff credentials
 2. → Redirect to `/staff-portal/`
 3. See "Staff Portal" with blue branding
@@ -166,6 +187,7 @@ const navItems = allNavItems.map(item => ({
 6. Cannot edit system settings (view only)
 
 ### Regular User Login Flow
+
 1. Login with regular credentials
 2. → Redirect to `/dashboard/`
 3. See regular user dashboard
@@ -175,26 +197,27 @@ const navItems = allNavItems.map(item => ({
 
 ## Permission Matrix
 
-| Feature | Admin | Staff | User |
-|---------|-------|-------|------|
-| Access Control Panel | ✅ | ❌ | ❌ |
-| Access Staff Portal | ❌ | ✅ | ❌ |
-| View Users | ✅ Full | ✅ Read-only | ❌ |
-| Edit Users | ✅ | ❌ | ❌ |
-| Delete Users | ✅ | ❌ | ❌ |
-| View Songs | ✅ | ✅ | Own only |
-| Approve Songs | ✅ | ✅ | ❌ |
-| Financial Data | ✅ | ❌ | ❌ |
-| System Settings | ✅ Edit | ✅ View | ❌ |
-| Bulk Notifications | ✅ | ❌ | ❌ |
-| Support Tickets | ✅ | ✅ | Own only |
-| Audit Logs | ✅ All | ✅ Own | ❌ |
+| Feature              | Admin   | Staff        | User     |
+| -------------------- | ------- | ------------ | -------- |
+| Access Control Panel | ✅      | ❌           | ❌       |
+| Access Staff Portal  | ❌      | ✅           | ❌       |
+| View Users           | ✅ Full | ✅ Read-only | ❌       |
+| Edit Users           | ✅      | ❌           | ❌       |
+| Delete Users         | ✅      | ❌           | ❌       |
+| View Songs           | ✅      | ✅           | Own only |
+| Approve Songs        | ✅      | ✅           | ❌       |
+| Financial Data       | ✅      | ❌           | ❌       |
+| System Settings      | ✅ Edit | ✅ View      | ❌       |
+| Bulk Notifications   | ✅      | ❌           | ❌       |
+| Support Tickets      | ✅      | ✅           | Own only |
+| Audit Logs           | ✅ All  | ✅ Own       | ❌       |
 
 ---
 
 ## Visual Differences
 
 ### Admin Control Panel
+
 - **Header:** "Admin Control Panel"
 - **Color:** Purple gradient (from-purple-600 to-blue-600)
 - **Badge:** Purple "Admin" badge
@@ -202,6 +225,7 @@ const navItems = allNavItems.map(item => ({
 - **Financial Cards:** Visible on dashboard
 
 ### Staff Portal
+
 - **Header:** "Staff Portal"
 - **Color:** Blue gradient (from-blue-600 to-cyan-600)
 - **Badge:** Blue "Staff" badge
@@ -216,15 +240,18 @@ const navItems = allNavItems.map(item => ({
 ### Test Admin Access
 
 1. **Login as admin:**
+
    - Email: `iconxx101+admin@yahoo.com`
    - Password: `admin123`
 
 2. **Verify redirect:**
+
    - Should go to `/control-panel/`
    - Should see "Admin Control Panel" header
    - Should see purple branding
 
 3. **Test navigation:**
+
    - All menu items visible
    - Can access financial management
    - Can access system settings
@@ -237,16 +264,19 @@ const navItems = allNavItems.map(item => ({
 ### Test Staff Access
 
 1. **Login as staff:**
+
    - Email: `iconxx101+staff@yahoo.com`
    - Password: `staff123`
 
 2. **Verify redirect:**
+
    - Should go to `/staff-portal/`
    - Should see "Staff Portal" header
    - Should see blue branding
    - Should see blue notice banner
 
 3. **Test navigation:**
+
    - Limited menu items visible
    - No financial management option
    - No bulk notifications option
@@ -260,9 +290,11 @@ const navItems = allNavItems.map(item => ({
 ### Test Regular User
 
 1. **Login as regular user:**
+
    - Any regular user account
 
 2. **Verify redirect:**
+
    - Should go to `/dashboard/`
    - Should see regular user dashboard
 
@@ -275,20 +307,25 @@ const navItems = allNavItems.map(item => ({
 ## Files Modified
 
 ### Frontend Files Created
+
 1. ✅ `frontend/src/pages/StaffDashboard.jsx` - New staff portal page
 
 ### Frontend Files Modified
+
 1. ✅ `frontend/src/App.jsx`
+
    - Added StaffDashboard import
-   - Added /staff-portal/* route with requireStaff
-   - Updated /control-panel/* route with requireAdmin
+   - Added /staff-portal/\* route with requireStaff
+   - Updated /control-panel/\* route with requireAdmin
 
 2. ✅ `frontend/src/components/ProtectedRoute.jsx`
+
    - Added requireAdmin prop
    - Added requireStaff prop
    - Added role-specific access control logic
 
 3. ✅ `frontend/src/pages/auth/Login.jsx`
+
    - Updated redirect logic to separate admin and staff
    - Admin → /control-panel
    - Staff → /staff-portal
@@ -304,6 +341,7 @@ const navItems = allNavItems.map(item => ({
 ## Backend (No Changes Needed)
 
 The backend API already has proper permissions:
+
 - `IsAdminOnly` - Admin-only endpoints
 - `IsStaffReadOnly` - Staff can view but not edit
 - `IsAdminOrStaff` - Both can access
@@ -317,6 +355,7 @@ The frontend routing now properly enforces which portal each role can access.
 ### Issue: Staff still accessing /control-panel
 
 **Check:**
+
 1. Clear browser cache (Ctrl+F5)
 2. Logout and login again
 3. Check localStorage - should have correct role
@@ -325,11 +364,13 @@ The frontend routing now properly enforces which portal each role can access.
 ### Issue: "Unauthorized" error
 
 **Possible causes:**
+
 1. Role not set correctly in database
 2. Token doesn't include role
 3. Browser cache has old data
 
 **Solution:**
+
 1. Verify role in database (should be 'admin' or 'staff')
 2. Logout completely
 3. Clear localStorage
@@ -338,6 +379,7 @@ The frontend routing now properly enforces which portal each role can access.
 ### Issue: Wrong portal showing
 
 **Check:**
+
 1. User role in console: `console.log(user?.role)`
 2. Should be exactly 'admin' or 'staff'
 3. Check login redirect logic in Login.jsx
@@ -350,20 +392,24 @@ The frontend routing now properly enforces which portal each role can access.
 ### What Works Now ✅
 
 1. **Separate Portals:**
+
    - Admin has `/control-panel/` with full access
    - Staff has `/staff-portal/` with limited access
 
 2. **Role-Based Routing:**
+
    - Admin can only access control panel
    - Staff can only access staff portal
    - Attempting to cross over shows "Unauthorized"
 
 3. **Login Redirects:**
+
    - Admin → `/control-panel/`
    - Staff → `/staff-portal/`
    - Users → `/dashboard/`
 
 4. **Visual Distinction:**
+
    - Different headers
    - Different color schemes
    - Different navigation items
@@ -389,9 +435,9 @@ The frontend routing now properly enforces which portal each role can access.
 
 **Test Credentials:**
 
-| Role | Email | Password | Portal |
-|------|-------|----------|--------|
+| Role  | Email                     | Password | Portal          |
+| ----- | ------------------------- | -------- | --------------- |
 | Admin | iconxx101+admin@yahoo.com | admin123 | /control-panel/ |
-| Staff | iconxx101+staff@yahoo.com | staff123 | /staff-portal/ |
+| Staff | iconxx101+staff@yahoo.com | staff123 | /staff-portal/  |
 
 **Just refresh your browser and try logging in again!** 🎉
