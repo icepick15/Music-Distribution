@@ -92,6 +92,16 @@ class User(AbstractUser):
     
     @property
     def is_admin_user(self):
+        """Check if user is admin (not including staff)"""
+        return self.role == 'admin' or self.is_superuser
+    
+    @property
+    def is_staff_user(self):
+        """Check if user is staff (not including admin)"""
+        return self.role == 'staff' and not self.is_superuser
+    
+    @property
+    def is_admin_or_staff(self):
         """Check if user is admin or staff"""
         return self.role in ['admin', 'staff'] or self.is_staff or self.is_superuser
 

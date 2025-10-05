@@ -65,11 +65,31 @@ def create_user_notification_preferences(sender, instance, created, **kwargs):
             logger.error(f"Failed to send welcome notification to {instance.email}: {str(e)}")
 
 
+@receiver(pre_save, sender='songs.Song')
+def track_song_status_change(sender, instance, **kwargs):
+    """
+    Track the old status before saving to detect status changes
+    """
+    if instance.pk:
+        try:
+            old_instance = sender.objects.get(pk=instance.pk)
+            instance._old_status = old_instance.status
+            logger.info(f"🔍 PRE_SAVE: Tracked old status for song '{instance.title}': {old_instance.status}")
+        except sender.DoesNotExist:
+            instance._old_status = None
+            logger.info(f"🔍 PRE_SAVE: Song '{instance.title}' does not exist yet")
+    else:
+        instance._old_status = None
+        logger.info(f"🔍 PRE_SAVE: New song '{instance.title}', no old status")
+
+
 @receiver(post_save, sender='songs.Song')
 def handle_song_status_change(sender, instance, created, **kwargs):
     """
     Handle song status changes and send appropriate notifications
     """
+    logger.info(f"🔔 POST_SAVE: Song '{instance.title}' - created={created}, status={instance.status}")
+    
     if created:
         # New song uploaded (draft created)
         NotificationService.send_user_notification(
@@ -99,19 +119,24 @@ def handle_song_status_change(sender, instance, created, **kwargs):
         )
     
     else:
-        # Check if status changed
-        try:
-            old_instance = sender.objects.get(pk=instance.pk)
-            if old_instance.status != instance.status:
-                handle_song_status_notification(instance, old_instance.status, instance.status)
-        except sender.DoesNotExist:
-            pass
+        # Check if status changed using the tracked old status
+        old_status = getattr(instance, '_old_status', None)
+        logger.info(f"🔍 Status Check: old_status={old_status}, new_status={instance.status}")
+        
+        if old_status and old_status != instance.status:
+            logger.info(f"✅ Status changed from '{old_status}' to '{instance.status}' - sending notification")
+            handle_song_status_notification(instance, old_status, instance.status)
+        elif not old_status:
+            logger.warning(f"⚠️ No old_status found for song '{instance.title}' - notification skipped")
+        elif old_status == instance.status:
+            logger.info(f"ℹ️ Status unchanged ({instance.status}) - no notification needed")
 
 
 def handle_song_status_notification(song, old_status, new_status):
     """
     Send notifications based on song status changes
     """
+    logger.info(f"📧 Handling notification: '{song.title}' - {old_status} → {new_status}")
     user = song.artist
     
     status_messages = {
@@ -139,23 +164,64 @@ def handle_song_status_notification(song, old_status, new_status):
     
     if new_status in status_messages:
         msg_data = status_messages[new_status]
+        logger.info(f"📤 Sending '{msg_data['notification_type']}' notification to {user.email}")
         
-        # Send user notification
-        NotificationService.send_user_notification(
-            user=user,
-            notification_type_name=msg_data['notification_type'],
-            title=msg_data['title'],
-            message=msg_data['message'],
-            context_data={
+        try:
+            # Prepare context data with all necessary information
+            from django.utils import timezone
+            from django.conf import settings
+            
+            context_data = {
                 'song_title': song.title,
                 'song_id': str(song.id),
+                'artist_name': user.get_full_name(),
                 'old_status': old_status,
                 'new_status': new_status,
                 'song_url': f'/dashboard/songs/{song.id}',
-            },
-            related_song=song,
-            priority='high' if new_status in ['approved', 'distributed'] else 'normal'
-        )
+            }
+            
+            # Add release date and shareable link for distributed status
+            if new_status == 'distributed':
+                if song.distributed_at:
+                    context_data['release_date'] = song.distributed_at.strftime('%B %d, %Y')
+                else:
+                    context_data['release_date'] = timezone.now().strftime('%B %d, %Y')
+                
+                # Use public shareable URL (no login required)
+                context_data['share_url'] = song.public_url
+                
+                # Get individual platform URLs for direct sharing
+                distributions = song.distributions.filter(status='live', platform_url__isnull=False)
+                platform_urls = {}
+                for dist in distributions:
+                    platform_name = dist.platform.name.lower()
+                    if 'spotify' in platform_name:
+                        platform_urls['spotify'] = dist.platform_url
+                    elif 'apple' in platform_name:
+                        platform_urls['apple_music'] = dist.platform_url
+                    elif 'youtube' in platform_name:
+                        platform_urls['youtube'] = dist.platform_url
+                
+                context_data['platform_urls'] = platform_urls
+            
+            # Send user notification
+            notification = NotificationService.send_user_notification(
+                user=user,
+                notification_type_name=msg_data['notification_type'],
+                title=msg_data['title'],
+                message=msg_data['message'],
+                context_data=context_data,
+                related_song=song,
+                priority='high' if new_status in ['approved', 'distributed'] else 'normal'
+            )
+            
+            if notification:
+                logger.info(f"✅ Notification created successfully: {notification.id}")
+            else:
+                logger.warning(f"⚠️ Notification creation returned None (might be disabled by user)")
+                
+        except Exception as e:
+            logger.error(f"❌ Failed to send notification: {str(e)}", exc_info=True)
         
         # Send admin notification for status changes
         if new_status == 'pending':
@@ -221,10 +287,12 @@ def handle_payment_notification(sender, instance, created, **kwargs):
                 remaining_credits = subscription_obj.remaining_credits if subscription_obj else 0
                 end_date = subscription_obj.end_date if subscription_obj else None
                 
-                # Format subscription details
+                # Format subscription details based on actual subscription type
                 if subscription_type == 'yearly':
                     description_text = "Yearly Premium Subscription - Unlimited uploads"
                     credits_info = "Unlimited uploads"
+                    # Override remaining_credits display for yearly subscriptions
+                    remaining_credits = "∞"  # Infinity symbol for unlimited
                 elif subscription_type == 'pay_per_song':
                     description_text = f"Pay Per Song - {remaining_credits} credit{'s' if remaining_credits != 1 else ''}"
                     credits_info = f"{remaining_credits} upload credit{'s' if remaining_credits != 1 else ''}"

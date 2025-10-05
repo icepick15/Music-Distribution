@@ -198,6 +198,56 @@ class PlatformListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
 
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def public_song_view(request, slug):
+    """
+    Public song page - no authentication required
+    Shows song info and streaming platform links for distributed songs only
+    """
+    try:
+        song = Song.objects.select_related('artist', 'genre').prefetch_related('distributions').get(
+            share_slug=slug,
+            status='distributed'  # Only show distributed songs publicly
+        )
+    except Song.DoesNotExist:
+        return Response({
+            'error': 'Song not found or not yet available'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    # Get platform distribution links
+    distributions = song.distributions.filter(
+        status='live',
+        platform_url__isnull=False
+    ).select_related('platform')
+    
+    platform_links = [
+        {
+            'platform': dist.platform.name,
+            'url': dist.platform_url,
+            'icon': dist.platform.logo_url if hasattr(dist.platform, 'logo_url') else None
+        }
+        for dist in distributions
+    ]
+    
+    # Build response with limited public data
+    return Response({
+        'id': str(song.id),
+        'title': song.title,
+        'artist_name': song.artist.get_full_name() or song.artist.username,
+        'featured_artists': song.featured_artists,
+        'cover_image': request.build_absolute_uri(song.cover_image.url) if song.cover_image else song.cover_url,
+        'genre': song.genre.name if song.genre else None,
+        'release_date': song.release_date,
+        'distributed_at': song.distributed_at,
+        'duration': song.duration_formatted if song.duration else None,
+        'is_explicit': song.is_explicit,
+        'platform_links': platform_links,
+        'share_url': song.public_url,
+        'total_streams': song.total_streams,  # Public vanity metric
+    })
+
+
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def submit_for_review(request, song_id):

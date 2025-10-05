@@ -27,6 +27,9 @@ urlpatterns = [
     path('genres/', views.GenreListView.as_view(), name='genre_list'),
     path('platforms/', views.PlatformListView.as_view(), name='platform_list'),
     
+    # Public song page (no auth required)
+    path('public/<slug:slug>/', views.public_song_view, name='public_song'),
+    
     # Statistics
     path('stats/', views.user_music_stats, name='user_music_stats'),
 ]

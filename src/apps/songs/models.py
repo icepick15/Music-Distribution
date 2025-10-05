@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.text import slugify
 import uuid
 import os
 
@@ -71,6 +72,7 @@ class Song(models.Model):
     title = models.CharField(max_length=200)
     artist = models.ForeignKey(User, on_delete=models.CASCADE, related_name='songs')
     featured_artists = models.CharField(max_length=500, blank=True, null=True, help_text="Comma-separated list of featured artists")
+    share_slug = models.SlugField(max_length=255, unique=True, blank=True, null=True, help_text="URL-friendly slug for public sharing")
     
     # Release Info
     release_type = models.CharField(max_length=20, choices=RELEASE_TYPE_CHOICES, default='single')
@@ -124,6 +126,26 @@ class Song(models.Model):
     
     def __str__(self):
         return f"{self.title} by {self.artist.get_full_name()}"
+    
+    def save(self, *args, **kwargs):
+        """Generate share_slug if not exists"""
+        if not self.share_slug:
+            base_slug = slugify(f"{self.title}-{self.artist.username}")
+            slug = base_slug
+            counter = 1
+            # Ensure uniqueness
+            while Song.objects.filter(share_slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.share_slug = slug
+        super().save(*args, **kwargs)
+    
+    @property
+    def public_url(self):
+        """Return public shareable URL"""
+        from django.conf import settings
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+        return f"{frontend_url}/song/{self.share_slug}"
     
     @property
     def duration_formatted(self):

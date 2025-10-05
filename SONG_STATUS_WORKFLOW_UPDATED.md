@@ -16,12 +16,12 @@ Upload → PENDING → APPROVED → DISTRIBUTED
 
 ### Status Definitions
 
-| Status | Description | Who Sets It | Next Actions |
-|--------|-------------|-------------|--------------|
-| **Pending** | Newly uploaded, awaiting admin review | System (automatic on upload) | Admin can approve or reject |
-| **Approved** | Passed review, ready for distribution | Admin | Admin can distribute or reject |
-| **Distributed** | Live on all platforms | Admin | No further actions (final state) |
-| **Rejected** | Did not pass review | Admin | Artist can re-upload |
+| Status          | Description                           | Who Sets It                  | Next Actions                     |
+| --------------- | ------------------------------------- | ---------------------------- | -------------------------------- |
+| **Pending**     | Newly uploaded, awaiting admin review | System (automatic on upload) | Admin can approve or reject      |
+| **Approved**    | Passed review, ready for distribution | Admin                        | Admin can distribute or reject   |
+| **Distributed** | Live on all platforms                 | Admin                        | No further actions (final state) |
+| **Rejected**    | Did not pass review                   | Admin                        | Artist can re-upload             |
 
 ---
 
@@ -30,22 +30,26 @@ Upload → PENDING → APPROVED → DISTRIBUTED
 ### Quick Actions (Django Admin)
 
 1. **⚡ Approve & Distribute (One-Step)** ⭐ RECOMMENDED
+
    - Select songs → Choose "⚡ Approve & Distribute (one-step)" → Go
    - Automatically approves AND distributes in one action
    - Works on: Pending songs
    - Result: Songs go live immediately
 
 2. **✅ Approve Selected Songs**
+
    - Select songs → Choose "✅ Approve selected songs" → Go
    - Changes status: Pending → Approved
    - Works on: Pending songs only
 
 3. **🚀 Distribute Approved Songs**
+
    - Select songs → Choose "🚀 Distribute approved songs" → Go
    - Changes status: Approved → Distributed
    - Works on: Approved songs only
 
 4. **❌ Reject Selected Songs**
+
    - Select songs → Choose "❌ Reject selected songs" → Go
    - Changes status: Pending/Approved → Rejected
    - Works on: Pending or Approved songs
@@ -58,11 +62,13 @@ Upload → PENDING → APPROVED → DISTRIBUTED
 ### Understanding Bulk Action Messages
 
 **Success Messages:**
+
 - ✅ `X song(s) approved successfully.`
 - 🚀 `X song(s) marked as distributed and now live!`
 - ⚡ `X song(s) approved and distributed successfully!`
 
 **Warning Messages:**
+
 - ⚠️ `No pending songs in selection. X song(s) skipped (already approved, distributed, or rejected).`
 - ⚠️ `No approved songs were selected. Only songs with "Approved" status can be distributed. Please approve songs first.`
 
@@ -86,6 +92,7 @@ The frontend already perfectly handles all statuses:
 ```
 
 ### Status Labels
+
 - **"Pending"**: Song is in review queue
 - **"Processing"**: Same as pending (used interchangeably)
 - **"Live"**: Song is approved or distributed
@@ -177,6 +184,7 @@ Song.objects.filter(status='draft').update(status='pending')
 ## ✅ Testing Checklist
 
 ### Admin Actions
+
 - [x] "Approve & Distribute" works on pending songs
 - [x] "Approve songs" works on pending songs
 - [x] "Distribute songs" works on approved songs
@@ -184,12 +192,14 @@ Song.objects.filter(status='draft').update(status='pending')
 - [x] Helpful success messages with counts
 
 ### Frontend
+
 - [x] DashboardMusic displays pending status correctly (yellow badge)
 - [x] Upload page creates songs with pending status
 - [x] No broken code in Dashboard or MusicDashboard
 - [x] Status badges show correct colors and labels
 
 ### API
+
 - [x] New uploads create songs with status='pending'
 - [x] submit_for_review accepts both draft and pending
 - [x] Song stats API works correctly
@@ -200,15 +210,18 @@ Song.objects.filter(status='draft').update(status='pending')
 ## 🎯 Benefits of This Change
 
 1. **Streamlined Workflow** ⚡
+
    - One-step "Approve & Distribute" action
    - No extra "Submit for Review" step needed
 
 2. **Better Admin Experience** 👨‍💼
+
    - All uploads immediately visible in review queue
    - Clear status indicators and helpful messages
    - Fewer clicks to publish songs
 
 3. **Better Artist Experience** 🎨
+
    - Upload and done - no extra submission step
    - Clear status feedback in dashboard
    - Faster time to live
@@ -226,7 +239,8 @@ Song.objects.filter(status='draft').update(status='pending')
 
 **Cause:** You selected songs that aren't in the required status.
 
-**Solution:** 
+**Solution:**
+
 - Use **"⚡ Approve & Distribute"** instead (works on pending songs)
 - OR approve songs first, then distribute
 
@@ -235,6 +249,7 @@ Song.objects.filter(status='draft').update(status='pending')
 **Cause:** Admin hasn't reviewed yet.
 
 **Solution:**
+
 - Go to Django Admin → Songs → Songs
 - Select pending songs
 - Use "⚡ Approve & Distribute" action
@@ -244,6 +259,7 @@ Song.objects.filter(status='draft').update(status='pending')
 **Cause:** They have status='draft', filters might exclude them.
 
 **Solution:**
+
 - Use "Reset to Pending Review" action to convert them
 - Or filter by "Draft" status in admin sidebar
 
@@ -260,6 +276,7 @@ Song.objects.filter(status='draft').update(status='pending')
 ## 🎉 Quick Reference
 
 ### For Admins
+
 ```
 1. New upload arrives → Status: Pending (yellow)
 2. Select song in admin → Choose "⚡ Approve & Distribute"
@@ -267,6 +284,7 @@ Song.objects.filter(status='draft').update(status='pending')
 ```
 
 ### For Artists
+
 ```
 1. Upload song → Automatic pending status
 2. Wait for approval → Check dashboard

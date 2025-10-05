@@ -276,6 +276,10 @@
             background-color: #4267b2;
             color: white;
         }
+        .share-whatsapp {
+            background-color: #25d366;
+            color: white;
+        }
         .share-instagram {
             background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
             color: white;
@@ -332,9 +336,9 @@
             </div>
             
             <div class="song-card">
-                <div class="song-title">"{{ context_data.song_title|default:"Your Amazing Song" }}"</div>
-                <div class="song-artist">by {{ context_data.artist_name|default:user.get_full_name }}</div>
-                <div class="release-date">Live Since: {{ context_data.release_date|default:"Today" }}</div>
+                <div class="song-title">"{{ song_title|default:"Your Amazing Song" }}"</div>
+                <div class="song-artist">by {{ artist_name|default:user.get_full_name }}</div>
+                <div class="release-date">Live Since: {{ release_date|default:"Today" }}</div>
             </div>
             
             <div class="platforms-section">
@@ -435,23 +439,26 @@
             
             <div class="social-share">
                 <h3>📢 Share the Good News!</h3>
-                <p style="margin-bottom: 25px; color: #6b7280;">Let the world know your music is live!</p>
+                <p style="margin-bottom: 25px; color: #6b7280;">Let the world know your music is live! Your fans can preview your song and find it on their favorite platform.</p>
                 <div class="share-buttons">
-                    <a href="https://twitter.com/intent/tweet?text=🎉 My new song '{{ context_data.song_title|default:"My Song" }}' is now live on all streaming platforms!" class="share-btn share-twitter">
+                    <a href="https://twitter.com/intent/tweet?text=🎉%20My%20new%20song%20%22{{ song_title|urlencode }}%22%20is%20now%20live!%20Listen%20here:%20{{ share_url|urlencode }}" class="share-btn share-twitter">
                         Share on Twitter
                     </a>
-                    <a href="https://facebook.com/sharer/sharer.php?u={{ frontend_url }}" class="share-btn share-facebook">
+                    <a href="https://facebook.com/sharer/sharer.php?u={{ share_url|urlencode }}" class="share-btn share-facebook">
                         Share on Facebook
                     </a>
-                    <a href="#" class="share-btn share-instagram">
-                        Share Story
+                    <a href="https://wa.me/?text=🎉%20Check%20out%20my%20new%20song%20%22{{ song_title|urlencode }}%22!%20{{ share_url|urlencode }}" class="share-btn share-whatsapp">
+                        Share on WhatsApp
+                    </a>
+                    <a href="{{ share_url }}" class="share-btn share-instagram" target="_blank">
+                        Copy Link to Share
                     </a>
                 </div>
             </div>
             
             <div class="action-buttons">
-                <a href="{{ frontend_url }}/dashboard/analytics/{{ context_data.song_id }}" class="btn btn-primary">View Analytics</a>
-                <a href="{{ frontend_url }}/dashboard/songs/{{ context_data.song_id }}" class="btn btn-secondary">Song Details</a>
+                <a href="{{ frontend_url }}/dashboard/analytics/{{ song_id }}" class="btn btn-primary">View Analytics</a>
+                <a href="{{ frontend_url }}/dashboard/songs/{{ song_id }}" class="btn btn-secondary">Song Details</a>
                 <a href="{{ frontend_url }}/dashboard/songs/new" class="btn btn-outline">Upload Next Song</a>
             </div>
         </div>

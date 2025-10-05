@@ -168,7 +168,7 @@
         <!-- Content -->
         <div class="content">
             <div class="song-card">
-                <div class="song-title">"{{ context_data.song_title }}"</div>
+                <div class="song-title">"{{ song_title }}"</div>
                 <div class="song-status">✅ APPROVED</div>
                 <p>Your track has passed our quality review and is ready for distribution!</p>
             </div>
@@ -231,7 +231,7 @@
             </div>
             
             <div style="text-align: center; margin: 40px 0;">
-                <a href="{{ frontend_url }}/dashboard/songs/{{ context_data.song_id }}" class="button">
+                <a href="{{ frontend_url }}/dashboard/songs/{{ song_id }}" class="button">
                     Track Progress
                 </a>
                 <a href="{{ frontend_url }}/upload" class="button secondary">

@@ -15,23 +15,14 @@ from .serializers import (
 )
 from src.apps.songs.models import Song
 from src.apps.notifications.models import Notification
+from .permissions import IsAdminOrStaff, IsAdminOnly, IsStaffReadOnly
 
 User = get_user_model()
 
 
-class IsAdminOrStaff(permissions.BasePermission):
-    """Custom permission class for admin-only access"""
-    
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated and (
-            request.user.role in ['admin', 'staff'] or request.user.is_staff
-        )
-
-
 class AdminDashboardViewSet(viewsets.ViewSet):
     """Main admin dashboard viewset"""
-    # permission_classes = [IsAdminOrStaff]  # Temporarily disabled for testing
-    permission_classes = []
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrStaff]
     
     @action(detail=False, methods=['get'])
     def stats(self, request):
@@ -252,10 +243,8 @@ class AdminDashboardViewSet(viewsets.ViewSet):
 
 
 class UserManagementViewSet(viewsets.ViewSet):
-    """User management viewset"""
-    # Temporarily disable permissions for testing
-    # permission_classes = [IsAdminOrStaff]
-    permission_classes = []  # Explicitly disable all permissions for testing
+    """User management viewset - staff can view, admin can edit"""
+    permission_classes = [permissions.IsAuthenticated, IsStaffReadOnly]
     
     def list(self, request):
         """List all users with filtering and pagination"""
@@ -352,8 +341,8 @@ class UserManagementViewSet(viewsets.ViewSet):
 
 
 class ContentManagementViewSet(viewsets.ViewSet):
-    """Content management viewset for song approval"""
-    permission_classes = [IsAdminOrStaff]
+    """Content management viewset for song approval - staff can approve, admin can do everything"""
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrStaff]
     
     def list(self, request):
         """List songs pending approval"""
@@ -462,10 +451,10 @@ class ContentManagementViewSet(viewsets.ViewSet):
 
 
 class SystemSettingsViewSet(viewsets.ModelViewSet):
-    """System settings management"""
+    """System settings management - admin only"""
     queryset = SystemSettings.objects.all()
     serializer_class = SystemSettingsSerializer
-    permission_classes = [IsAdminOrStaff]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOnly]
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -475,10 +464,10 @@ class SystemSettingsViewSet(viewsets.ModelViewSet):
 
 
 class AdminActionsViewSet(viewsets.ReadOnlyModelViewSet):
-    """Audit log for admin actions"""
+    """Audit log for admin actions - staff can view their own, admin can view all"""
     queryset = AdminAction.objects.all()
     serializer_class = AdminActionSerializer
-    permission_classes = [IsAdminOrStaff]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrStaff]
     
     def get_queryset(self):
         queryset = AdminAction.objects.select_related('admin_user')
@@ -502,10 +491,10 @@ class AdminActionsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class BulkNotificationViewSet(viewsets.ModelViewSet):
-    """Bulk notification management"""
+    """Bulk notification management - admin only"""
     queryset = BulkNotification.objects.all()
     serializer_class = BulkNotificationSerializer
-    permission_classes = [IsAdminOrStaff]
+    permission_classes = [permissions.IsAuthenticated, IsAdminOnly]
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)

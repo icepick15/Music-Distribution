@@ -93,12 +93,16 @@ class SongAdmin(admin.ModelAdmin):
     def approve_songs(self, request, queryset):
         """Approve selected pending songs"""
         pending_songs = queryset.filter(status='pending')
-        updated = pending_songs.update(
-            status='approved',
-            approved_at=timezone.now()
-        )
+        updated = 0
+        # Use individual save to trigger post_save signals for email notifications
+        for song in pending_songs:
+            song.status = 'approved'
+            song.approved_at = timezone.now()
+            song.save()  # Triggers signals for email notification
+            updated += 1
+        
         if updated > 0:
-            self.message_user(request, f'✅ {updated} song(s) approved successfully.')
+            self.message_user(request, f'✅ {updated} song(s) approved successfully. Email notifications sent to artists.')
         else:
             skipped = queryset.exclude(status='pending').count()
             self.message_user(request, f'⚠️ No pending songs in selection. {skipped} song(s) skipped (already approved, distributed, or rejected).', level='warning')
@@ -117,34 +121,43 @@ class SongAdmin(admin.ModelAdmin):
     def distribute_songs(self, request, queryset):
         """Mark approved songs as distributed (live)"""
         approved_songs = queryset.filter(status='approved')
-        updated = approved_songs.update(
-            status='distributed',
-            distributed_at=timezone.now()
-        )
+        updated = 0
+        # Use individual save to trigger post_save signals for email notifications
+        for song in approved_songs:
+            song.status = 'distributed'
+            song.distributed_at = timezone.now()
+            song.save()  # Triggers signals for email notification
+            updated += 1
+        
         if updated > 0:
-            self.message_user(request, f'🚀 {updated} song(s) marked as distributed and now live!')
+            self.message_user(request, f'🚀 {updated} song(s) marked as distributed and now live! Email notifications sent to artists.')
         else:
             self.message_user(request, '⚠️ No approved songs were selected. Only songs with "Approved" status can be distributed. Please approve songs first.', level='warning')
     distribute_songs.short_description = "🚀 Distribute approved songs (approved → distributed)"
     
     def approve_and_distribute(self, request, queryset):
         """Approve and immediately distribute selected songs (one-step process)"""
-        # First, approve pending songs
-        pending_songs = queryset.filter(status='pending')
-        approved_count = pending_songs.update(
-            status='approved',
-            approved_at=timezone.now()
-        )
+        distributed_count = 0
         
-        # Then distribute all approved songs in the queryset (including newly approved)
-        approved_songs = queryset.filter(status='approved')
-        distributed_count = approved_songs.update(
-            status='distributed',
-            distributed_at=timezone.now()
-        )
+        # Process pending and approved songs
+        processable_songs = queryset.filter(status__in=['pending', 'approved'])
+        
+        # Use individual save to trigger post_save signals for email notifications
+        for song in processable_songs:
+            # If pending, approve first (triggers approval email)
+            if song.status == 'pending':
+                song.status = 'approved'
+                song.approved_at = timezone.now()
+                song.save()  # Triggers approval notification
+            
+            # Then distribute (triggers distribution email)
+            song.status = 'distributed'
+            song.distributed_at = timezone.now()
+            song.save()  # Triggers distribution notification
+            distributed_count += 1
         
         if distributed_count > 0:
-            self.message_user(request, f'✅🚀 {distributed_count} song(s) approved and distributed successfully!')
+            self.message_user(request, f'✅🚀 {distributed_count} song(s) approved and distributed successfully! Email notifications sent to artists.')
         else:
             self.message_user(request, '⚠️ No songs were distributed. Selected songs must be in "Pending" or "Approved" status.', level='warning')
     approve_and_distribute.short_description = "⚡ Approve & Distribute (one-step)"

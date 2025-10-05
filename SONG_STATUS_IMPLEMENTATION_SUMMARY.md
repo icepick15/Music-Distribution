@@ -9,11 +9,13 @@
 ## 🎯 What Changed
 
 ### Before
+
 - Songs uploaded with status = **"draft"**
 - Required manual "Submit for Review" action
 - Admin action said "0 songs marked as distributed" when trying to approve drafts
 
 ### After
+
 - Songs uploaded with status = **"pending"** (automatic review queue)
 - No extra submission step needed
 - Admin actions work immediately with helpful messages
@@ -23,13 +25,17 @@
 ## 📝 Files Modified
 
 ### Backend
+
 1. **`src/apps/songs/models.py`**
+
    - Changed `default='draft'` → `default='pending'`
 
 2. **`src/apps/songs/views.py`**
+
    - Updated `submit_for_review` to accept both 'draft' and 'pending'
 
 3. **`src/apps/songs/admin.py`**
+
    - Added new **"⚡ Approve & Distribute"** one-step action
    - Enhanced all action messages with emojis and helpful warnings
    - Improved error handling
@@ -39,6 +45,7 @@
    - Applied: ✅ Success
 
 ### Frontend
+
 **No changes needed!** ✅
 
 - `DashboardMusic.jsx` - Already handles 'pending' status perfectly
@@ -63,6 +70,7 @@
 ## 🚀 How to Use (Admins)
 
 ### Quick Workflow
+
 1. Artist uploads song → Status: **Pending** (yellow badge)
 2. Go to Django Admin → Songs → Songs
 3. Select pending songs
@@ -71,6 +79,7 @@
 6. Done! Songs are now **Distributed** (green badge, live)
 
 ### All Available Actions
+
 - **⚡ Approve & Distribute** - One step to go live (pending → distributed)
 - **✅ Approve** - Move to approved (pending → approved)
 - **🚀 Distribute** - Publish approved songs (approved → distributed)
@@ -83,12 +92,12 @@
 
 Songs appear in the dashboard with correct status badges:
 
-| Status | Badge Color | Label |
-|--------|------------|-------|
-| Pending | Yellow | "Pending" or "Processing" |
-| Approved | Green | "Live" |
-| Distributed | Green | "Live" |
-| Rejected | Red | "Review" |
+| Status      | Badge Color | Label                     |
+| ----------- | ----------- | ------------------------- |
+| Pending     | Yellow      | "Pending" or "Processing" |
+| Approved    | Green       | "Live"                    |
+| Distributed | Green       | "Live"                    |
+| Rejected    | Red         | "Review"                  |
 
 ---
 
@@ -113,6 +122,7 @@ Songs appear in the dashboard with correct status badges:
 ## 📚 Documentation
 
 Created/Updated:
+
 - ✅ `SONG_STATUS_WORKFLOW_UPDATED.md` - Complete workflow guide
 - ✅ `test_status_change.py` - Verification test script
 - ✅ This summary document
@@ -138,6 +148,7 @@ Created/Updated:
 ## 📞 Support
 
 If you see "0 songs marked as distributed":
+
 1. Check song status (must be "Pending" for approval)
 2. Use **"⚡ Approve & Distribute"** instead (works on pending songs)
 3. Or approve first, then distribute

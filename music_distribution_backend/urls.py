@@ -22,7 +22,8 @@ from . import views
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Secure admin route - changed from /admin/ to prevent predictable attacks
+    path('control-panel/', admin.site.urls),
     
     
     # Health check endpoints

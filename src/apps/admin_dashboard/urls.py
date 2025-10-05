@@ -14,5 +14,6 @@ router.register(r'actions', AdminActionsViewSet, basename='admin-actions')
 router.register(r'notifications', BulkNotificationViewSet, basename='admin-notifications')
 
 urlpatterns = [
-    path('api/admin/', include(router.urls)),
+    # Secure admin API route - changed from /api/admin/ to /api/cp/ (control-panel)
+    path('api/cp/', include(router.urls)),
 ]
