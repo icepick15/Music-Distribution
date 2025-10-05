@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   Settings, 
   Save, 
@@ -17,15 +17,22 @@ import {
   Music,
   Key,
   Server,
-  Monitor
+  Monitor,
+  Lock
 } from "lucide-react";
+import { AuthContext } from "../../context/AuthContext";
+import { canPerformAction } from "../../utils/permissions";
 
 const SystemSettings = () => {
+  const { user: currentUser } = useContext(AuthContext);
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  
+  // Check if user can manage settings
+  const canManageSettings = currentUser && canPerformAction(currentUser, 'manage_settings');
 
   useEffect(() => {
     fetchSettings();
@@ -34,9 +41,9 @@ const SystemSettings = () => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/settings/', {
+      const response = await fetch('/api/cp/settings/', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -135,10 +142,10 @@ const SystemSettings = () => {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      const response = await fetch('/api/admin/settings/', {
+      const response = await fetch('/api/cp/settings/', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(settings),
@@ -158,10 +165,10 @@ const SystemSettings = () => {
 
   const testEmailSettings = async () => {
     try {
-      const response = await fetch('/api/admin/settings/test-email/', {
+      const response = await fetch('/api/cp/settings/test-email/', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -185,7 +192,8 @@ const SystemSettings = () => {
           <select
             value={value}
             onChange={(e) => handleSettingChange(category, key, e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            disabled={!canManageSettings}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             {options.map(option => (
               <option key={option.value} value={option.value}>
@@ -204,7 +212,8 @@ const SystemSettings = () => {
             type="checkbox"
             checked={value}
             onChange={(e) => handleSettingChange(category, key, e.target.checked)}
-            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+            disabled={!canManageSettings}
+            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
           <label className="text-sm font-medium text-gray-700">{label}</label>
         </div>
@@ -218,8 +227,9 @@ const SystemSettings = () => {
           <textarea
             value={value}
             onChange={(e) => handleSettingChange(category, key, e.target.value)}
+            disabled={!canManageSettings}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
         </div>
       );
@@ -260,16 +270,17 @@ const SystemSettings = () => {
         <div className="mt-4 md:mt-0 flex items-center space-x-3">
           <button
             onClick={fetchSettings}
-            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2"
+            disabled={!canManageSettings}
+            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw className="w-4 h-4" />
             <span>Refresh</span>
           </button>
           <button
             onClick={saveSettings}
-            disabled={!unsavedChanges || saving}
+            disabled={!unsavedChanges || saving || !canManageSettings}
             className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
-              unsavedChanges && !saving
+              unsavedChanges && !saving && canManageSettings
                 ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
@@ -283,6 +294,21 @@ const SystemSettings = () => {
           </button>
         </div>
       </div>
+
+      {/* Admin Only Notice */}
+      {!canManageSettings && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+          <div className="flex items-center space-x-3">
+            <Lock className="w-5 h-5 text-red-600" />
+            <div>
+              <p className="text-red-800 font-medium">Administrator Access Required</p>
+              <p className="text-red-700 text-sm">
+                System settings can only be modified by administrators. Contact your admin if you need settings changed.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Unsaved Changes Warning */}
       {unsavedChanges && (

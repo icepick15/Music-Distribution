@@ -1,10 +1,10 @@
-// src/pages/AdminDashboard.jsx
+// src/pages/StaffDashboard.jsx
 import React from "react";
 import { Routes } from "react-router-dom";
 import AdminSidebar from "../admin/components/AdminSidebar";
 import adminRoutes from "../admin/routes/AdminRoutes";
 
-export default function AdminDashboard() {
+export default function StaffDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   return (
@@ -44,12 +44,21 @@ export default function AdminDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <span className="text-sm font-medium text-gray-900">Admin Control Panel</span>
+          <span className="text-sm font-medium text-gray-900">Staff Portal</span>
           <div className="w-6" />
         </div>
         <main className="flex-1">
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              {/* Header indicating Staff Portal */}
+              <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h1 className="text-2xl font-bold text-blue-900">Staff Portal</h1>
+                <p className="text-blue-700 text-sm mt-1">
+                  You have staff access with limited permissions
+                </p>
+              </div>
+              
+              {/* Reuse adminRoutes - permissions are handled in individual components */}
               <Routes>
                 {adminRoutes}
               </Routes>

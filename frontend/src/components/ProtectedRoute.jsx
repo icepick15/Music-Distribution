@@ -9,6 +9,8 @@ const ProtectedRoute = ({
   requireAuth = true, 
   requireSubscription = false,
   adminOnly = false,
+  requireAdmin = false,
+  requireStaff = false,
   developersOnly = false 
 }) => {
   const { isSignedIn, user, isLoaded } = useAuth();
@@ -33,7 +35,7 @@ const ProtectedRoute = ({
   // Developer mode bypass for authentication (allows access without login)
   if (DEVELOPER_MODE && !developersOnly) {
     // Skip authentication check in developer mode, but still check for admin/subscription requirements
-    if (adminOnly || requireSubscription) {
+    if (adminOnly || requireAdmin || requireStaff || requireSubscription) {
       // In developer mode, create a mock user for admin/subscription checks
       const mockUser = {
         publicMetadata: {
@@ -43,7 +45,7 @@ const ProtectedRoute = ({
       };
       
       // Check admin access with mock user
-      if (adminOnly && mockUser.publicMetadata.role !== 'admin') {
+      if ((adminOnly || requireAdmin) && mockUser.publicMetadata.role !== 'admin') {
         return <Navigate to="/unauthorized" replace />;
       }
       
@@ -57,9 +59,30 @@ const ProtectedRoute = ({
     return <Navigate to="/login" replace />;
   }
 
-  // Check admin access
-  if (adminOnly && (!user?.publicMetadata?.role || user.publicMetadata.role !== 'admin')) {
-    return <Navigate to="/unauthorized" replace />;
+  const userRole = user?.publicMetadata?.role || user?.role;
+
+  // Check if route requires admin role (admin has access to everything)
+  if (requireAdmin) {
+    if (userRole !== 'admin') {
+      return <Navigate to="/unauthorized" replace />;
+    }
+  }
+
+  // Check if route requires staff role (allow both staff and admin)
+  if (requireStaff) {
+    const isStaffOrAdmin = userRole === 'staff' || userRole === 'admin';
+    if (!isStaffOrAdmin) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+  }
+
+  // Legacy adminOnly check - allow both admin and staff roles (for backward compatibility)
+  if (adminOnly && !requireAdmin && !requireStaff) {
+    const isAdminOrStaff = userRole === 'admin' || userRole === 'staff';
+    
+    if (!isAdminOrStaff) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   // Check subscription requirement

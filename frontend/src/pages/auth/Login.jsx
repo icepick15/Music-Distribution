@@ -63,8 +63,19 @@ const Login = () => {
       const result = await signIn(formData.email, formData.password);
       
       if (result.success) {
-        // Navigate to dashboard
-        navigate('/dashboard');
+        // Check user role and redirect accordingly
+        const userRole = result.user?.publicMetadata?.role || result.user?.role;
+        
+        if (userRole === 'admin') {
+          // Redirect admin to admin control panel
+          navigate('/control-panel');
+        } else if (userRole === 'staff') {
+          // Redirect staff to staff portal
+          navigate('/staff-portal');
+        } else {
+          // Redirect regular users to dashboard
+          navigate('/dashboard');
+        }
       } else {
         setErrors({ submit: result.error || 'Login failed. Please try again.' });
       }

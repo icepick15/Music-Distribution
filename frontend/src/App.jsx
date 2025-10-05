@@ -48,9 +48,11 @@ import ReferralDashboard from './pages/dashboard/ReferralDashboard';
 import ReferralLanding from './pages/ReferralLanding';
 import BlogList from './pages/BlogList';
 import BlogPost from './pages/BlogPost';
+import PublicSongPage from './pages/PublicSongPage';
 
 // Admin Pages
 import AdminDashboard from './pages/AdminDashboard';
+import StaffDashboard from './pages/StaffDashboard';
 
 // Error Pages
 import { NotFound, Unauthorized } from './pages/error';
@@ -138,6 +140,9 @@ const AppRoutes = () => {
             <ModernFooter />
           </>
         } />
+
+        {/* Public Song Page - No Auth Required */}
+        <Route path="/song/:slug" element={<PublicSongPage />} />
 
         {/* Blog Routes - Public */}
         <Route path="/blog" element={
@@ -249,10 +254,17 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } />
 
-        {/* Admin Routes - Protected */}
-        <Route path="/admin/*" element={
-          <ProtectedRoute adminOnly={true} developersOnly={true}>
+        {/* Admin Routes - Protected (Admin Only) */}
+        <Route path="/control-panel/*" element={
+          <ProtectedRoute requireAdmin={true}>
             <AdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* Staff Portal - Protected (Staff and Admin) */}
+        <Route path="/staff-portal/*" element={
+          <ProtectedRoute requireStaff={true}>
+            <StaffDashboard />
           </ProtectedRoute>
         } />
 

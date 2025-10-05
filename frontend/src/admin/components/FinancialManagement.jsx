@@ -37,9 +37,9 @@ const FinancialManagement = () => {
   const fetchFinancialData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/financial/overview/?days=${dateRange}`, {
+      const response = await fetch(`/api/cp/financial/overview/?days=${dateRange}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -81,9 +81,9 @@ const FinancialManagement = () => {
         ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
       });
 
-      const response = await fetch(`/api/admin/financial/transactions/?${params}`, {
+      const response = await fetch(`/api/cp/financial/transactions/?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -131,9 +131,9 @@ const FinancialManagement = () => {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await fetch(`/api/admin/financial/subscriptions/?days=${dateRange}`, {
+      const response = await fetch(`/api/cp/financial/subscriptions/?days=${dateRange}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });

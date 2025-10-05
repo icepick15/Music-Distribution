@@ -30,9 +30,9 @@ const PlatformAnalytics = () => {
   const fetchAnalyticsData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/analytics/?days=${dateRange}`, {
+      const response = await fetch(`/api/cp/dashboard/stats/?days=${dateRange}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });

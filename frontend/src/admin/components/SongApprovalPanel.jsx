@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   Play, 
   Pause, 
@@ -14,10 +14,16 @@ import {
   User,
   Calendar,
   FileAudio,
-  AlertTriangle
+  AlertTriangle,
+  Shield,
+  Lock,
+  Trash2
 } from "lucide-react";
+import { AuthContext } from "../../context/AuthContext";
+import { canPerformAction } from "../../utils/permissions";
 
 const ContentManagementPanel = () => {
+  const { user: currentUser } = useContext(AuthContext);
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,9 +50,9 @@ const ContentManagementPanel = () => {
         ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
       });
 
-      const response = await fetch(`/api/admin/songs/?${params}`, {
+      const response = await fetch(`/api/cp/content/?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -113,10 +119,10 @@ const ContentManagementPanel = () => {
       const endpoint = action === 'approve' ? 'approve_song' : 'reject_song';
       const body = action === 'reject' && reason ? { reason } : {};
       
-      const response = await fetch(`/api/admin/songs/${songId}/${endpoint}/`, {
+      const response = await fetch(`/api/cp/content/${songId}/${endpoint}/`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
@@ -148,10 +154,10 @@ const ContentManagementPanel = () => {
     }
 
     try {
-      const response = await fetch(`/api/admin/songs/bulk_${action}/`, {
+      const response = await fetch(`/api/cp/content/bulk_${action}/`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ song_ids: selectedSongs }),
@@ -215,6 +221,21 @@ const ContentManagementPanel = () => {
 
   return (
     <div className="space-y-6">
+      {/* Staff Access Notice */}
+      {currentUser && currentUser.role === 'staff' && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+          <div className="flex items-start space-x-3">
+            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-green-900 font-semibold">Staff Approval Access</h3>
+              <p className="text-green-700 text-sm mt-1">
+                You can <strong>approve or reject</strong> songs. Deletion requires administrator privileges.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
@@ -222,10 +243,12 @@ const ContentManagementPanel = () => {
           <p className="text-gray-600 mt-1">Review and manage uploaded songs</p>
         </div>
         <div className="mt-4 md:mt-0 flex items-center space-x-3">
-          <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2">
-            <Download className="w-4 h-4" />
-            <span>Export</span>
-          </button>
+          {currentUser && canPerformAction(currentUser, 'export_analytics') && (
+            <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2">
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
+          )}
         </div>
       </div>
 

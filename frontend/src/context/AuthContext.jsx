@@ -326,6 +326,7 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signUp,
     signOut,
+    logout: signOut, // Alias for backward compatibility
     updateUser,
     refreshToken,
     // API helper for other components
@@ -342,4 +343,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// Export both as named and default for flexibility
+export { AuthContext };
 export default AuthContext;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   Search, 
   Filter, 
@@ -11,10 +11,15 @@ import {
   XCircle,
   AlertCircle,
   Download,
-  RefreshCw
+  RefreshCw,
+  Lock,
+  Shield
 } from "lucide-react";
+import { AuthContext } from "../../context/AuthContext";
+import { canPerformAction } from "../../utils/permissions";
 
 const UserManagementAdvanced = () => {
+  const { user: currentUser } = useContext(AuthContext);
   console.log('🟢 UserManagementAdvanced component loaded!');
   console.log('🟢 Current URL:', window.location.href);
   console.log('🟢 Component render time:', new Date().toISOString());
@@ -56,18 +61,17 @@ const UserManagementAdvanced = () => {
         ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
       });
 
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem('authToken');
       console.log('🔑 Token status:', token ? 'Token exists' : 'No token');
       
-      const apiUrl = `http://localhost:8000/api/admin/users/?${params}`;
+      const apiUrl = `http://localhost:8000/api/cp/users/?${params}`;
       console.log('🌐 API URL:', apiUrl);
       console.log('🌐 Full URL with params:', apiUrl);
 
       console.log('🚀 Making fetch request...');
       const response = await fetch(apiUrl, {
         headers: {
-          // Temporarily remove auth for testing
-          // 'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -134,10 +138,10 @@ const UserManagementAdvanced = () => {
   const handleUserAction = async (userId, action) => {
     try {
       const endpoint = action === 'verify' ? 'verify_artist' : 'suspend_user';
-      const response = await fetch(`http://localhost:8000/api/admin/users/${userId}/${endpoint}/`, {
+      const response = await fetch(`http://localhost:8000/api/cp/users/${userId}/${endpoint}/`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -204,6 +208,22 @@ const UserManagementAdvanced = () => {
 
   return (
     <div className="space-y-6">
+      {/* Staff Access Notice */}
+      {currentUser && currentUser.role === 'staff' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-start space-x-3">
+            <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-blue-900 font-semibold">Staff Access Mode</h3>
+              <p className="text-blue-700 text-sm mt-1">
+                You have <strong>view-only</strong> access to user management. You can search and view user details, 
+                but editing, verification, and deletion require administrator privileges.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
@@ -211,13 +231,15 @@ const UserManagementAdvanced = () => {
           <p className="text-gray-600 mt-1">Manage users, artists, and their verification status</p>
         </div>
         <div className="mt-4 md:mt-0 flex items-center space-x-3">
-          <button
-            onClick={() => handleBulkAction('export')}
-            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export</span>
-          </button>
+          {currentUser && canPerformAction(currentUser, 'export_analytics') && (
+            <button
+              onClick={() => handleBulkAction('export')}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
+          )}
           <button
             onClick={fetchUsers}
             className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
@@ -528,28 +550,47 @@ const UserManagementAdvanced = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
-                        {user.role === 'artist' && !user.is_artist_verified && (
-                          <button
-                            onClick={() => handleUserAction(user.id, 'verify')}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Verify Artist"
-                          >
-                            <UserCheck className="w-4 h-4" />
-                          </button>
-                        )}
+                        {/* View button - available to all */}
                         <button
-                          onClick={() => handleUserAction(user.id, 'suspend')}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Suspend User"
-                        >
-                          <UserX className="w-4 h-4" />
-                        </button>
-                        <button
+                          onClick={() => console.log('View user:', user.id)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Send Email"
+                          title="View Details"
                         >
-                          <Mail className="w-4 h-4" />
+                          <Eye className="w-4 h-4" />
                         </button>
+                        
+                        {/* Edit actions - Admin only */}
+                        {currentUser && canPerformAction(currentUser, 'edit_users') ? (
+                          <>
+                            {user.role === 'artist' && !user.is_artist_verified && (
+                              <button
+                                onClick={() => handleUserAction(user.id, 'verify')}
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                title="Verify Artist"
+                              >
+                                <UserCheck className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleUserAction(user.id, 'suspend')}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Suspend User"
+                            >
+                              <UserX className="w-4 h-4" />
+                            </button>
+                            <button
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Send Email"
+                            >
+                              <Mail className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex items-center text-xs text-gray-400 px-2">
+                            <Lock className="w-3 h-3 mr-1" />
+                            View Only
+                          </div>
+                        )}
                         <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
                           <MoreVertical className="w-4 h-4" />
                         </button>

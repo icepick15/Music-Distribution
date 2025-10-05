@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   Clock, 
   User, 
@@ -20,10 +20,15 @@ import {
   Database,
   FileText,
   Users,
-  Music
+  Music,
+  Lock,
+  Info
 } from "lucide-react";
+import { AuthContext } from "../../context/AuthContext";
+import { canPerformAction } from "../../utils/permissions";
 
 const AuditLogs = () => {
+  const { user: currentUser } = useContext(AuthContext);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +44,10 @@ const AuditLogs = () => {
   const [pageSize] = useState(50);
   const [selectedLog, setSelectedLog] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  
+  // Check permissions
+  const canViewAllLogs = currentUser && canPerformAction(currentUser, 'view_audit_logs');
+  const canExportLogs = currentUser && canPerformAction(currentUser, 'view_audit_logs');
 
   useEffect(() => {
     fetchLogs();
@@ -51,12 +60,14 @@ const AuditLogs = () => {
         page: currentPage,
         page_size: pageSize,
         ...(searchTerm && { search: searchTerm }),
-        ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+        ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v)),
+        // Staff users can only see their own logs
+        ...(currentUser && currentUser.role === 'staff' && { user_id: currentUser.id })
       });
 
-      const response = await fetch(`/api/admin/audit-logs/?${params}`, {
+      const response = await fetch(`/api/cp/actions/?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -223,9 +234,9 @@ const AuditLogs = () => {
         export: 'csv'
       });
 
-      const response = await fetch(`/api/admin/audit-logs/export/?${params}`, {
+      const response = await fetch(`/api/cp/actions/export/?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
       });
 
@@ -260,13 +271,15 @@ const AuditLogs = () => {
           <p className="text-gray-600 mt-1">Monitor system activities and user actions</p>
         </div>
         <div className="mt-4 md:mt-0 flex items-center space-x-3">
-          <button
-            onClick={exportLogs}
-            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export</span>
-          </button>
+          {canExportLogs && (
+            <button
+              onClick={exportLogs}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center space-x-2"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
+          )}
           <button
             onClick={fetchLogs}
             className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
@@ -276,6 +289,21 @@ const AuditLogs = () => {
           </button>
         </div>
       </div>
+
+      {/* Staff Notice */}
+      {currentUser && currentUser.role === 'staff' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+          <div className="flex items-center space-x-3">
+            <Info className="w-5 h-5 text-blue-600" />
+            <div>
+              <p className="text-blue-800 font-medium">Your Activity Logs</p>
+              <p className="text-blue-700 text-sm">
+                You can view your own audit trail. Administrators can see all system activity logs.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

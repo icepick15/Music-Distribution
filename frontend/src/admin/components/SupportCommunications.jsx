@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   MessageSquare, 
   Send, 
@@ -16,10 +16,15 @@ import {
   MessageCircle,
   User,
   Calendar,
-  Tag
+  Tag,
+  Lock,
+  UserCheck
 } from "lucide-react";
+import { AuthContext } from "../../context/AuthContext";
+import { canPerformAction } from "../../utils/permissions";
 
 const SupportCommunications = () => {
+  const { user: currentUser } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('tickets');
   const [tickets, setTickets] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -37,6 +42,11 @@ const SupportCommunications = () => {
     recipient_type: 'all',
     send_email: true
   });
+  
+  // Check permissions
+  const canSendBulkNotifications = currentUser && canPerformAction(currentUser, 'send_bulk_notifications');
+  const canCloseTickets = currentUser && canPerformAction(currentUser, 'edit_tickets');
+  const canRespondToTickets = currentUser && canPerformAction(currentUser, 'view_tickets');
 
   useEffect(() => {
     fetchTickets();
@@ -51,9 +61,9 @@ const SupportCommunications = () => {
         ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
       });
 
-      const response = await fetch(`/api/admin/tickets/?${params}`, {
+      const response = await fetch(`/api/cp/tickets/?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -110,9 +120,9 @@ const SupportCommunications = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('/api/admin/notifications/', {
+      const response = await fetch('/api/cp/notifications/', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
       });
@@ -158,10 +168,10 @@ const SupportCommunications = () => {
 
   const handleTicketStatusUpdate = async (ticketId, newStatus) => {
     try {
-      const response = await fetch(`/api/admin/tickets/${ticketId}/update-status/`, {
+      const response = await fetch(`/api/cp/tickets/${ticketId}/update-status/`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: newStatus }),
@@ -190,10 +200,10 @@ const SupportCommunications = () => {
     }
 
     try {
-      const response = await fetch('/api/admin/bulk-notifications/', {
+      const response = await fetch('/api/cp/notifications/', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(bulkMessage),
@@ -260,13 +270,15 @@ const SupportCommunications = () => {
           <p className="text-gray-600 mt-1">Manage support tickets and platform communications</p>
         </div>
         <div className="mt-4 md:mt-0 flex items-center space-x-3">
-          <button
-            onClick={() => setShowBulkNotification(true)}
-            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
-          >
-            <Send className="w-4 h-4" />
-            <span>Send Notification</span>
-          </button>
+          {canSendBulkNotifications && (
+            <button
+              onClick={() => setShowBulkNotification(true)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2"
+            >
+              <Send className="w-4 h-4" />
+              <span>Send Notification</span>
+            </button>
+          )}
           <button
             onClick={() => {
               fetchTickets();
@@ -279,6 +291,21 @@ const SupportCommunications = () => {
           </button>
         </div>
       </div>
+
+      {/* Staff Access Notice */}
+      {currentUser && currentUser.role === 'staff' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+          <div className="flex items-center space-x-3">
+            <UserCheck className="w-5 h-5 text-blue-600" />
+            <div>
+              <p className="text-blue-800 font-medium">Staff Support Access</p>
+              <p className="text-blue-700 text-sm">
+                You can view tickets and respond to user inquiries. Only administrators can assign, close, or send bulk notifications.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -506,16 +533,23 @@ const SupportCommunications = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                            <select
-                              value={ticket.status}
-                              onChange={(e) => handleTicketStatusUpdate(ticket.id, e.target.value)}
-                              className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            >
-                              <option value="open">Open</option>
-                              <option value="in_progress">In Progress</option>
-                              <option value="resolved">Resolved</option>
-                              <option value="closed">Closed</option>
-                            </select>
+                            {canCloseTickets ? (
+                              <select
+                                value={ticket.status}
+                                onChange={(e) => handleTicketStatusUpdate(ticket.id, e.target.value)}
+                                className="text-xs border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              >
+                                <option value="open">Open</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="closed">Closed</option>
+                              </select>
+                            ) : (
+                              <div className="flex items-center text-xs text-gray-400">
+                                <Lock className="w-3 h-3 mr-1" />
+                                {ticket.status}
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>

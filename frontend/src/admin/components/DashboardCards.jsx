@@ -1,5 +1,5 @@
 // src/admin/components/DashboardCards.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   Users, 
   Music, 
@@ -11,10 +11,14 @@ import {
   Clock,
   Activity,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Lock
 } from "lucide-react";
+import { AuthContext } from "../../context/AuthContext";
+import { canPerformAction } from "../../utils/permissions";
 
 const DashboardCards = () => {
+  const { user } = useContext(AuthContext);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,10 +34,14 @@ const DashboardCards = () => {
     try {
       console.log("🔄 Approving all pending songs...");
       
-      const response = await fetch('http://localhost:8000/api/admin/dashboard/approve_pending_songs/', {
+      // Get auth token from localStorage
+      const authToken = localStorage.getItem('authToken');
+      
+      const response = await fetch('http://localhost:8000/api/cp/dashboard/approve_pending_songs/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
         },
         body: JSON.stringify({}) // Empty body to approve all pending songs
       });
@@ -61,10 +69,18 @@ const DashboardCards = () => {
     try {
       console.log("🔄 Fetching dashboard stats from Django backend...");
       
+      // Get auth token from localStorage
+      const authToken = localStorage.getItem('authToken');
+      if (!authToken) {
+        console.error("❌ No auth token found");
+        throw new Error("Authentication required");
+      }
+      
       // Try to fetch complete dashboard stats first
-      const response = await fetch('http://localhost:8000/api/admin/dashboard/stats/', {
+      const response = await fetch('http://localhost:8000/api/cp/dashboard/stats/', {
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       
@@ -79,9 +95,10 @@ const DashboardCards = () => {
       
       // Fallback: Fetch individual data pieces
       // Fetch real user count from your Django backend
-      const usersResponse = await fetch('http://localhost:8000/api/admin/users/', {
+      const usersResponse = await fetch('http://localhost:8000/api/cp/users/', {
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
         },
       });
       
@@ -142,9 +159,11 @@ const DashboardCards = () => {
       
       // Final fallback with minimal real data
       try {
-        const usersResponse = await fetch('http://localhost:8000/api/admin/users/', {
+        const authToken = localStorage.getItem('authToken');
+        const usersResponse = await fetch('http://localhost:8000/api/cp/users/', {
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
           },
         });
         
@@ -244,16 +263,21 @@ const DashboardCards = () => {
     );
   }
 
+  // Check if user can view financial data
+  const canViewFinancial = user && canPerformAction(user, 'view_financial_data');
+
   const metrics = [
-    {
+    // Revenue - Admin Only
+    ...(canViewFinancial ? [{
       title: "Total Revenue",
       value: `₦${stats?.total_revenue?.toLocaleString() || '0'}`,
       icon: <DollarSign className="w-6 h-6 text-green-600" />,
       bg: "bg-green-50",
       change: "+12.5%",
       changeType: "positive",
-      description: "vs last month"
-    },
+      description: "vs last month",
+      adminOnly: true
+    }] : []),
     {
       title: "Total Users",
       value: stats?.total_users?.toLocaleString() || '0',
